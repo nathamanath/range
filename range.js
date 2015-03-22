@@ -69,10 +69,10 @@
   var Range = function(el) {
     this.input = el;
 
-    this.value = parseInt(el.value);
-    this.max = parseInt(el.getAttribute('max')) || 100;
-    this.min = parseInt(el.getAttribute('min')) || 0;
-    this.step = parseInt(el.getAttribute('step')) || 1;
+    this.value = parseFloat(el.value);
+    this.max = parseFloat(el.getAttribute('max')) || 100;
+    this.min = parseFloat(el.getAttribute('min')) || 0;
+    this.step = parseFloat(el.getAttribute('step')) || 1;
 
     this.mouseDown = false;
   }
@@ -82,6 +82,7 @@
 
       this._render();
       this._bindEvents();
+      this._setValue(this.value);
 
       return this;
     },
@@ -127,7 +128,6 @@
       this.oldValue = this.value;
 
       this._input(e);
-      this._change();
 
       Helpers.fireEvent(this.input, 'mousedown');
 
@@ -144,10 +144,10 @@
 
       var onMove = function(e) {
         that._input(e);
-        that._change();
       };
 
       var onUp = function(e) {
+        that._change();
         Helpers.removeEvent(window, 'mousemove',  onMove);
         Helpers.removeEvent(window, 'mouseup', onUp);
       }
@@ -168,29 +168,34 @@
     _input: function(e) {
       var x = (window.Event) ? e.pageX : Event.clientX;
 
-      var value = parseInt(this._scale(x - this.xMin, 0, this.xMax, this.min, this.max));
+      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax, this.min, this.max));
 
+      this._setValue(value);
+
+      if(this.oldValue !== this.value) {
+        Helpers.fireEvent(this.input, 'input');
+      }
+    },
+
+    _setValue: function(value) {
       // round to nearest step + min limit between min and max
       var rounded = this._round(value);
       var limited = this._limitToRange(rounded);
       this.newValue = limited;
 
-      if(this.oldValue !== limited) {
-        Helpers.fireEvent(this.input, 'input');
-      }
+      // set pointer position
+      var maxLeft = this.xMax - this.pointerWidth;
+
+      // TODO: should be correct number of steps. one per possible value
+      var left = this._scale(limited, this.min, this.max, 0, maxLeft);
+
+      this.pointer.style.left = left + 'px';
     },
 
     _change: function() {
       if(this.oldValue !== this.newValue) {
         this.value = this.newValue;
 
-        // set pointer position
-        var maxLeft = this.xMax - this.pointerWidth;
-
-        // TODO: should be correct number of steps. one per possible value
-        var left = this._scale(this.value, this.min, this.max, 0, maxLeft);
-
-        this.pointer.style.left = left + 'px';
         this.input.value = this.oldValue = this.value;
 
         Helpers.fireEvent(this.input, 'change');
@@ -222,27 +227,7 @@
      * @returns {integer} - n rounded to nearest this.step
      */
     _round: function(n) {
-      n = parseInt(n);
-      var multipliers = [1, -1];
-      var match = false;
-      var i = 0;
-      var out;
-      var step = this.step;
-
-      while(!match) {
-        for(var j = 0, m; m = multipliers[j]; j++) {
-          out = n + (i * m);
-
-          if(out % step === 0) {
-            match = true;
-          }
-
-        }
-
-        i++;
-      }
-
-      return out;
+      return Math.round(n / this.step) * this.step;
     }
   };
 
