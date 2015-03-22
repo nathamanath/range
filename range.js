@@ -127,7 +127,6 @@
       this.oldValue = this.value;
 
       this._input(e);
-      this._change();
 
       Helpers.fireEvent(this.input, 'mousedown');
 
@@ -144,7 +143,6 @@
 
       var onMove = function(e) {
         that._input(e);
-        that._change();
       };
 
       var onUp = function(e) {
@@ -175,6 +173,14 @@
       var limited = this._limitToRange(rounded);
       this.newValue = limited;
 
+      // set pointer position
+      var maxLeft = this.xMax - this.pointerWidth;
+
+      // TODO: should be correct number of steps. one per possible value
+      var left = this._scale(limited, this.min, this.max, 0, maxLeft);
+
+      this.pointer.style.left = left + 'px';
+
       if(this.oldValue !== limited) {
         Helpers.fireEvent(this.input, 'input');
       }
@@ -184,13 +190,6 @@
       if(this.oldValue !== this.newValue) {
         this.value = this.newValue;
 
-        // set pointer position
-        var maxLeft = this.xMax - this.pointerWidth;
-
-        // TODO: should be correct number of steps. one per possible value
-        var left = this._scale(this.value, this.min, this.max, 0, maxLeft);
-
-        this.pointer.style.left = left + 'px';
         this.input.value = this.oldValue = this.value;
 
         Helpers.fireEvent(this.input, 'change');
