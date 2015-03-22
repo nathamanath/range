@@ -35,8 +35,7 @@ input element, your events will fire as before.
 ### TODO
 
 * round like real range input. value = min + n * step
-* correct number of steps
-* handle floats
+* correct number of steps - test with
 * cant click max value... scaling something wrong
 * make it responsive
 * ie testing
