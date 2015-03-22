@@ -1,7 +1,0 @@
-{
-"version": 3,
-"mappings": "AAAA,kBAAkB;EAChB,KAAK,EAAE,KAAK;EACZ,MAAM,EAAE,IAAI;EACZ,UAAU,EAAE,KAAK;EAEjB,yBAAM;IACJ,KAAK,EAAE,IAAI;IACX,MAAM,EAAE,IAAI;IACZ,UAAU,EAAE,GAAG",
-"sources": ["range.sass"],
-"names": [],
-"file": "range.css"
-}

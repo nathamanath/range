@@ -1,34 +1,23 @@
+/**
+ * @fileoverview Range input replacement
+ * @author NathanG
+ * @license MIT
+ * @version 0.0.1
+ */
+
 (function(document, window) {
   'use strict';
 
   /**
-   * Helpers to make old ie work
+   * Helper methods
    */
-  var Helpers = {
-    _eventMethods: (function() {
-      var out;
-
-      if(window.addEventListener !== 'undefined') {
-        out = ['addEventListener', 'removeEventListener'];
-      } else {
-        out = ['attachEvent', 'detachEvent'];
-      }
-
-      return out;
-    })(),
-
-    /** shim addEventListener */
-    addEvent: function(el, e, fn) {
-      el[this._eventMethods[0]](e, fn, true);
-    },
-
-    removeEvent: function(el, e, fn) {
-      el[this._eventMethods[1]](e, fn, true);
-    },
-
+  var H = {
     /** custom event cache */
     _events: {},
 
+    /**
+     * @param eventName {string} - name of event to be created
+     */
     createEvent: function(eventName) {
       var event;
 
@@ -61,11 +50,17 @@
       }
     },
 
-    redraw: function(el) {
+    paint: function(el) {
       return el.offsetHeight;
     }
   };
 
+  /**
+   * Represents a range input
+   *
+   * @class Range
+   * @param {object} el - range input to recieve facade
+   */
   var Range = function(el) {
     this.input = el;
 
@@ -77,9 +72,9 @@
     this.mouseDown = false;
   }
 
+  /** @memberof Range */
   Range.prototype = {
     init: function() {
-
       this._render();
       this._bindEvents();
       this._setValue(this.value);
@@ -88,15 +83,18 @@
     },
 
     _render: function() {
-      this.input.style.opacity = 0;
-      this.input.style.position = 'absolute';
+      var input = this.input;
 
-      this.input.parentNode.insertBefore(this._template(), this.input.nextSibling);
+      input.style.display = 'none';
 
-      Helpers.redraw(this.pointer);
+      input.parentNode.insertBefore(this._template(), input.nextSibling);
 
+      this._getDimensions();
+    },
+
+    _getDimensions: function() {
+      H.paint(this.pointer);
       this.pointerWidth = this.pointer.offsetWidth;
-
       var rect = this.el.getBoundingClientRect();
 
       this.xMin = rect.left;
@@ -120,16 +118,29 @@
     _bindEvents: function() {
       var that = this;
 
-      Helpers.addEvent(this.el, 'mousedown', function(e) { that._onMouseDown(e); });
-      Helpers.addEvent(this.el, 'mouseup', function(e) { that._onMouseUp(e); });
+      this.el.addEventListener('mousedown', function(e) {
+        that._onMouseDown(e);
+      });
+
+      this.el.addEventListener('mouseup', function(e) {
+        that._onMouseUp(e);
+      });
+
+      // TODO: Share resize event across all instances + throtle
+      window.addEventListener('resize', function(e) {
+        that._onResize(e);
+      })
+    },
+
+    _onResize: function(e) {
+      this._getDimensions();
+      this._setValue(this.value);
     },
 
     _onMouseDown: function(e) {
       this.oldValue = this.value;
 
       this._input(e);
-
-      Helpers.fireEvent(this.input, 'mousedown');
 
       var that = this;
 
@@ -148,48 +159,47 @@
 
       var onUp = function(e) {
         that._change();
-        Helpers.removeEvent(window, 'mousemove',  onMove);
-        Helpers.removeEvent(window, 'mouseup', onUp);
+
+        window.removeEventListener('mousemove',  onMove);
+        window.removeEventListener('mouseup', onUp);
       }
 
-      Helpers.addEvent(window, 'mousemove',  onMove);
-      Helpers.addEvent(window, 'mouseup', onUp);
+      window.addEventListener('mousemove',  onMove);
+      window.addEventListener('mouseup', onUp);
+
+      H.fireEvent(this.input, 'mousedown');
     },
 
     _onMouseUp: function(e) {
-      this._input(e);
       this._change();
 
-      // stop updating
-      Helpers.fireEvent(this.input, 'mouseup');
-      Helpers.fireEvent(this.input, 'click');
+      H.fireEvent(this.input, 'mouseup');
+      H.fireEvent(this.input, 'click');
     },
 
     _input: function(e) {
-      var x = (window.Event) ? e.pageX : Event.clientX;
+      var x = (typeof e.pageX !== 'undefined') ? e.pageX : window.event.clientX;
 
-      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax, this.min, this.max));
+      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax - this.pointerWidth, this.min, this.max));
 
       this._setValue(value);
 
-      if(this.oldValue !== this.value) {
-        Helpers.fireEvent(this.input, 'input');
-      }
+      // TODO: ie8 dosent like doing this...
+      H.fireEvent(this.input, 'input');
     },
 
     _setValue: function(value) {
-      // round to nearest step + min limit between min and max
+      // round to nearest step limit between min and max
       var rounded = this._round(value);
       var limited = this._limitToRange(rounded);
       this.newValue = limited;
+      this.input.value = this.newValue;
 
       // set pointer position
       var maxLeft = this.xMax - this.pointerWidth;
+      var left = this._scale(limited, this.min, this.max, 0, maxLeft) || 0;
 
-      // TODO: should be correct number of steps. one per possible value
-      var left = this._scale(limited, this.min, this.max, 0, maxLeft);
-
-      this.pointer.style.left = left + 'px';
+      this.pointer.style.left = [parseInt(left), 'px'].join('');
     },
 
     _change: function() {
@@ -198,7 +208,7 @@
 
         this.input.value = this.oldValue = this.value;
 
-        Helpers.fireEvent(this.input, 'change');
+        H.fireEvent(this.input, 'change');
       }
     },
 
@@ -211,6 +221,7 @@
     },
 
     /**
+     * @private
      * @param {number} value - number to be rounded
      * @param {number} srcLow - min value
      * @param {number} srcHigh - max value
@@ -223,6 +234,7 @@
     },
 
     /**
+     * @private
      * @param {number} n - to be rounded
      * @returns {integer} - n rounded to nearest this.step
      */
@@ -231,36 +243,31 @@
     }
   };
 
-  /**
-   * Apply Range to single range input
-   *
-   * @returns {object} - Range instance
-   */
-  Range.new = function(el) {
-    return new Range(el).init();
-  };
-
-  /**
-   * Apply to all range inputs
-   *
-   * @returns {array} - Range instances
-   */
-  Range.init = function(selector) {
-    selector = selector || 'input[type=range]'
-    var els = document.querySelectorAll(selector);
-    var ranges = [];
-
-    for(var i = 0, el; el = els[i]; i++) {
-      ranges.push(Range.new(el));
-    }
-
-    return ranges;
-  };
-
-  // expose just what is needed
+  /** @lends Range */
   var out = {
-    new: Range.new,
-    init: Range.init
+    /**
+     * @param {object} el - input to replace
+     * @returns {object} Range instance
+     */
+    'new': function(el) {
+      return new Range(el).init();
+    },
+
+    /**
+     * @param {string} [selector] - css selector for ranges to replace
+     * @returns {array} Range instances
+     */
+    'init': function(selector) {
+      selector = selector || 'input[type=range]'
+      var els = document.querySelectorAll(selector);
+      var ranges = [];
+
+      for(var i = 0, el; el = els[i]; i++) {
+        ranges.push(this['new'](el)); // 'cause ie8
+      }
+
+      return ranges;
+    }
   };
 
   var define = window['define'] || null;
