@@ -243,9 +243,10 @@
       this.input.value = this.newValue;
 
       // set pointer position
+      var hpw = this.pointerWidth * 0.5;
       var maxLeft = this.xMax - this.pointerWidth;
       var from = [this.min, this.max];
-      var to = [0, maxLeft];
+      var to = [0 - hpw, maxLeft + hpw];
 
       // TODO: shouldnt need the || 0
       var left = this._scale(limited, from, to) || 0;
