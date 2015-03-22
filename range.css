@@ -14,3 +14,9 @@ input {
   background: red;
 }
 
+.range-replacement .tick {
+  width: 1px;
+  height: 5px;
+  background: #000;
+}
+
