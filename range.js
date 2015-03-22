@@ -79,6 +79,10 @@
       this._bindEvents();
       this._setValue(this.value);
 
+      if(this.input.getAttribute('list')) {
+        this._generateTicks();
+      }
+
       return this;
     },
 
@@ -90,6 +94,29 @@
       input.parentNode.insertBefore(this._template(), input.nextSibling);
 
       this._getDimensions();
+    },
+
+    _generateTicks: function() {
+      var el = document.createElement('div');
+
+      el.className = 'ticks';
+
+      var steps = (this.max - this.min) / this.step;
+      var stepPercent = 100 / steps;
+
+      for(var i = 0; i < steps; i++) {
+        var tick = document.createElement('div');
+
+        var left = stepPercent * i;
+
+        tick.className = 'tick';
+        tick.style.position = 'absolute';
+        tick.style.left = [left, '%'].join('');
+
+        el.appendChild(tick);
+      }
+
+      this.el.appendChild(el);
     },
 
     _getDimensions: function() {
@@ -177,8 +204,24 @@
       H.fireEvent(this.input, 'click');
     },
 
+    _getMouseX: (function() {
+      var out;
+
+      if(typeof window.event === 'undefined') {
+        out = function(e) {
+          return e.pageX;
+        };
+      } else {
+        out = function() {
+          return window.event.clientX;
+        };
+      }
+
+      return out;
+    })(),
+
     _input: function(e) {
-      var x = (typeof e.pageX !== 'undefined') ? e.pageX : window.event.clientX;
+      var x = this._getMouseX(e);
 
       var offsetX = x - this.xMin;
       var from = [0, this.xMax - this.pointerWidth];
