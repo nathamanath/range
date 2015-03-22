@@ -176,7 +176,6 @@
       this.newValue = limited;
 
       if(this.oldValue !== limited) {
-
         Helpers.fireEvent(this.input, 'input');
       }
     },
@@ -188,6 +187,7 @@
         // set pointer position
         var maxLeft = this.xMax - this.pointerWidth;
 
+        // TODO: should be correct number of steps. one per possible value
         var left = this._scale(this.value, this.min, this.max, 0, maxLeft);
 
         this.pointer.style.left = left + 'px';
