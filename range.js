@@ -69,10 +69,10 @@
   var Range = function(el) {
     this.input = el;
 
-    this.value = parseInt(el.value);
-    this.max = parseInt(el.getAttribute('max')) || 100;
-    this.min = parseInt(el.getAttribute('min')) || 0;
-    this.step = parseInt(el.getAttribute('step')) || 1;
+    this.value = parseFloat(el.value);
+    this.max = parseFloat(el.getAttribute('max')) || 100;
+    this.min = parseFloat(el.getAttribute('min')) || 0;
+    this.step = parseFloat(el.getAttribute('step')) || 1;
 
     this.mouseDown = false;
   }
@@ -82,6 +82,7 @@
 
       this._render();
       this._bindEvents();
+      this._setValue(this.value);
 
       return this;
     },
@@ -169,6 +170,14 @@
 
       var value = parseInt(this._scale(x - this.xMin, 0, this.xMax, this.min, this.max));
 
+      this._setValue(value);
+
+      if(this.oldValue !== this.value) {
+        Helpers.fireEvent(this.input, 'input');
+      }
+    },
+
+    _setValue: function(value) {
       // round to nearest step + min limit between min and max
       var rounded = this._round(value);
       var limited = this._limitToRange(rounded);
@@ -181,10 +190,6 @@
       var left = this._scale(limited, this.min, this.max, 0, maxLeft);
 
       this.pointer.style.left = left + 'px';
-
-      if(this.oldValue !== limited) {
-        Helpers.fireEvent(this.input, 'input');
-      }
     },
 
     _change: function() {
@@ -222,27 +227,7 @@
      * @returns {integer} - n rounded to nearest this.step
      */
     _round: function(n) {
-      n = parseInt(n);
-      var multipliers = [1, -1];
-      var match = false;
-      var i = 0;
-      var out;
-      var step = this.step;
-
-      while(!match) {
-        for(var j = 0, m; m = multipliers[j]; j++) {
-          out = n + (i * m);
-
-          if(out % step === 0) {
-            match = true;
-          }
-
-        }
-
-        i++;
-      }
-
-      return out;
+      return Math.round(n / this.step) * this.step;
     }
   };
 
