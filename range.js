@@ -168,7 +168,7 @@
     _input: function(e) {
       var x = (window.Event) ? e.pageX : Event.clientX;
 
-      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax, this.min, this.max));
+      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax - this.pointerWidth, this.min, this.max));
 
       this._setValue(value);
 
