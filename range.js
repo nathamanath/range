@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Range input replacement
+ * @author NathanG
+ * @license MIT
+ * @version 0.0.1
+ */
+
 (function(document, window) {
   'use strict';
 
@@ -29,6 +36,9 @@
     /** custom event cache */
     _events: {},
 
+    /**
+     * @param eventName {string} - name of event to be created
+     */
     createEvent: function(eventName) {
       var event;
 
@@ -66,6 +76,12 @@
     }
   };
 
+  /**
+   * Represents a range input
+   *
+   * @class Range
+   * @param el {object} - range input to recieve facade
+   */
   var Range = function(el) {
     this.input = el;
 
@@ -77,6 +93,7 @@
     this.mouseDown = false;
   }
 
+  /** @memberof Range */
   Range.prototype = {
     init: function() {
 
