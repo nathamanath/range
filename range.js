@@ -9,30 +9,9 @@
   'use strict';
 
   /**
-   * Helpers to make old ie work
+   * Helper methods
    */
-  var Helpers = {
-    _eventMethods: (function() {
-      var out;
-
-      if(typeof window.addEventListener !== 'undefined') {
-        out = ['addEventListener', 'removeEventListener'];
-      } else {
-        out = ['attachEvent', 'detachEvent'];
-      }
-
-      return out;
-    })(),
-
-    /** shim addEventListener */
-    addEvent: function(el, e, fn) {
-      el[this._eventMethods[0]](e, fn, true);
-    },
-
-    removeEvent: function(el, e, fn) {
-      el[this._eventMethods[1]](e, fn, true);
-    },
-
+  var H = {
     /** custom event cache */
     _events: {},
 
@@ -96,7 +75,6 @@
   /** @memberof Range */
   Range.prototype = {
     init: function() {
-
       this._render();
       this._bindEvents();
       this._setValue(this.value);
@@ -105,16 +83,17 @@
     },
 
     _render: function() {
-      this.input.style.opacity = 0;
-      this.input.style.position = 'absolute';
+      var input = this.input;
 
-      this.input.parentNode.insertBefore(this._template(), this.input.nextSibling);
+      input.style.display = 'none';
+
+      input.parentNode.insertBefore(this._template(), input.nextSibling);
 
       this._getDimensions();
     },
 
     _getDimensions: function() {
-      Helpers.paint(this.pointer);
+      H.paint(this.pointer);
       this.pointerWidth = this.pointer.offsetWidth;
       var rect = this.el.getBoundingClientRect();
 
@@ -139,16 +118,16 @@
     _bindEvents: function() {
       var that = this;
 
-      Helpers.addEvent(this.el, 'mousedown', function(e) {
+      this.el.addEventListener('mousedown', function(e) {
         that._onMouseDown(e);
       });
 
-      Helpers.addEvent(this.el, 'mouseup', function(e) {
+      this.el.addEventListener('mouseup', function(e) {
         that._onMouseUp(e);
       });
 
-      // TODO: Share event across all instances + throtle
-      Helpers.addEvent(window, 'resize', function(e) {
+      // TODO: Share resize event across all instances + throtle
+      window.addEventListener('resize', function(e) {
         that._onResize(e);
       })
     },
@@ -181,32 +160,33 @@
       var onUp = function(e) {
         that._change();
 
-        Helpers.removeEvent(window, 'mousemove',  onMove);
-        Helpers.removeEvent(window, 'mouseup', onUp);
+        window.removeEventListener('mousemove',  onMove);
+        window.removeEventListener('mouseup', onUp);
       }
 
-      Helpers.addEvent(window, 'mousemove',  onMove);
-      Helpers.addEvent(window, 'mouseup', onUp);
+      window.addEventListener('mousemove',  onMove);
+      window.addEventListener('mouseup', onUp);
 
-      Helpers.fireEvent(this.input, 'mousedown');
+      H.fireEvent(this.input, 'mousedown');
     },
 
     _onMouseUp: function(e) {
       this._change();
 
       // stop updating
-      Helpers.fireEvent(this.input, 'mouseup');
-      Helpers.fireEvent(this.input, 'click');
+      H.fireEvent(this.input, 'mouseup');
+      H.fireEvent(this.input, 'click');
     },
 
     _input: function(e) {
-      var x = (window.Event) ? e.pageX : Event.clientX;
+      var x = (typeof e.pageX !== 'undefined') ? e.pageX : window.event.clientX;
 
       var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax - this.pointerWidth, this.min, this.max));
 
       this._setValue(value);
 
-      Helpers.fireEvent(this.input, 'input');
+      // TODO: ie8 dosent like doing this...
+      H.fireEvent(this.input, 'input');
     },
 
     _setValue: function(value) {
@@ -231,7 +211,7 @@
 
         this.input.value = this.oldValue = this.value;
 
-        Helpers.fireEvent(this.input, 'change');
+        H.fireEvent(this.input, 'change');
       }
     },
 
@@ -264,38 +244,22 @@
     }
   };
 
-  /**
-   * Apply Range to single range input
-   *
-   * @returns {object} - Range instance
-   */
-  // Range.new = function(el) {
-  //   return new Range(el).init();
-  // };
-
-  /**
-   * Apply to all range inputs
-   *
-   * @returns {array} - Range instances
-   */
-  Range.init = function(selector) {
-    selector = selector || 'input[type=range]'
-    var els = document.querySelectorAll(selector);
-    var ranges = [];
-
-    for(var i = 0, el; el = els[i]; i++) {
-      ranges.push(new Range(el).init());
-    }
-
-    return ranges;
-  };
-
   // expose just what is needed
   var out = {
     'new': function(el) {
-      new Range(el).init();
+      return new Range(el).init();
     },
-    'init': Range.init
+    'init': function(selector) {
+      selector = selector || 'input[type=range]'
+      var els = document.querySelectorAll(selector);
+      var ranges = [];
+
+      for(var i = 0, el; el = els[i]; i++) {
+        ranges.push(this['new'](el)); // 'cause ie8
+      }
+
+      return ranges;
+    }
   };
 
   var define = window['define'] || null;
