@@ -59,7 +59,7 @@
    * Represents a range input
    *
    * @class Range
-   * @param el {object} - range input to recieve facade
+   * @param {object} el - range input to recieve facade
    */
   var Range = function(el) {
     this.input = el;
@@ -173,7 +173,6 @@
     _onMouseUp: function(e) {
       this._change();
 
-      // stop updating
       H.fireEvent(this.input, 'mouseup');
       H.fireEvent(this.input, 'click');
     },
@@ -198,8 +197,6 @@
 
       // set pointer position
       var maxLeft = this.xMax - this.pointerWidth;
-
-      // TODO: should be correct number of steps. one per possible value
       var left = this._scale(limited, this.min, this.max, 0, maxLeft) || 0;
 
       this.pointer.style.left = [parseInt(left), 'px'].join('');
@@ -224,6 +221,7 @@
     },
 
     /**
+     * @private
      * @param {number} value - number to be rounded
      * @param {number} srcLow - min value
      * @param {number} srcHigh - max value
@@ -236,6 +234,7 @@
     },
 
     /**
+     * @private
      * @param {number} n - to be rounded
      * @returns {integer} - n rounded to nearest this.step
      */
@@ -244,11 +243,20 @@
     }
   };
 
-  // expose just what is needed
+  /** @lends Range */
   var out = {
+    /**
+     * @param {object} el - input to replace
+     * @returns {object} Range instance
+     */
     'new': function(el) {
       return new Range(el).init();
     },
+
+    /**
+     * @param {string} [selector] - css selector for ranges to replace
+     * @returns {array} Range instances
+     */
     'init': function(selector) {
       selector = selector || 'input[type=range]'
       var els = document.querySelectorAll(selector);
