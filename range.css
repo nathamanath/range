@@ -1,0 +1,10 @@
+.range-replacement {
+  width: 200px;
+  height: 10px;
+  background: green; }
+  .range-replacement .point {
+    width: 10px;
+    height: 10px;
+    background: red; }
+
+/*# sourceMappingURL=range.css.map */

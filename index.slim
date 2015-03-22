@@ -1,0 +1,24 @@
+doctype html
+
+html
+  head
+    title range
+
+    link rel="stylesheet" href="/range.css"
+
+  body
+
+    input.range type="range" value="3" min="3" max="12" step="3"
+    input type="range" value="2" min="2" max="10" step="2"
+
+    script src="/range.js"
+    javascript:
+      range = Range.init('.range');
+
+      [].forEach.call(document.querySelectorAll('input'), function(i) {
+        i.addEventListener('change', function() {
+          console.log(this.value);
+        });
+      });
+
+

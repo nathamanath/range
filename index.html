@@ -1,0 +1,7 @@
+<!DOCTYPE html><html><head><title>range</title><link href="/range.css" rel="stylesheet" /></head><body><input class="range" max="12" min="3" step="3" type="range" value="3" /><input max="10" min="2" step="2" type="range" value="2" /><script src="/range.js"></script><script type="text/javascript">range = Range.init('.range');
+
+[].forEach.call(document.querySelectorAll('input'), function(i) {
+  i.addEventListener('change', function() {
+    console.log(this.value);
+  });
+});</script></body></html>
