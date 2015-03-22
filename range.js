@@ -15,7 +15,7 @@
     _eventMethods: (function() {
       var out;
 
-      if(window.addEventListener !== 'undefined') {
+      if(typeof window.addEventListener !== 'undefined') {
         out = ['addEventListener', 'removeEventListener'];
       } else {
         out = ['attachEvent', 'detachEvent'];
@@ -147,7 +147,7 @@
         that._onMouseUp(e);
       });
 
-      // TODO: Share event across all instances
+      // TODO: Share event across all instances + throtle
       Helpers.addEvent(window, 'resize', function(e) {
         that._onResize(e);
       })
@@ -162,8 +162,6 @@
       this.oldValue = this.value;
 
       this._input(e);
-
-      Helpers.fireEvent(this.input, 'mousedown');
 
       var that = this;
 
@@ -182,16 +180,18 @@
 
       var onUp = function(e) {
         that._change();
+
         Helpers.removeEvent(window, 'mousemove',  onMove);
         Helpers.removeEvent(window, 'mouseup', onUp);
       }
 
       Helpers.addEvent(window, 'mousemove',  onMove);
       Helpers.addEvent(window, 'mouseup', onUp);
+
+      Helpers.fireEvent(this.input, 'mousedown');
     },
 
     _onMouseUp: function(e) {
-      this._input(e);
       this._change();
 
       // stop updating
@@ -206,9 +206,7 @@
 
       this._setValue(value);
 
-      if(this.oldValue !== this.value) {
-        Helpers.fireEvent(this.input, 'input');
-      }
+      Helpers.fireEvent(this.input, 'input');
     },
 
     _setValue: function(value) {
@@ -216,14 +214,15 @@
       var rounded = this._round(value);
       var limited = this._limitToRange(rounded);
       this.newValue = limited;
+      this.input.value = this.newValue;
 
       // set pointer position
       var maxLeft = this.xMax - this.pointerWidth;
 
       // TODO: should be correct number of steps. one per possible value
-      var left = this._scale(limited, this.min, this.max, 0, maxLeft);
+      var left = this._scale(limited, this.min, this.max, 0, maxLeft) || 0;
 
-      this.pointer.style.left = left + 'px';
+      this.pointer.style.left = [parseInt(left), 'px'].join('');
     },
 
     _change: function() {
@@ -270,9 +269,9 @@
    *
    * @returns {object} - Range instance
    */
-  Range.new = function(el) {
-    return new Range(el).init();
-  };
+  // Range.new = function(el) {
+  //   return new Range(el).init();
+  // };
 
   /**
    * Apply to all range inputs
@@ -285,7 +284,7 @@
     var ranges = [];
 
     for(var i = 0, el; el = els[i]; i++) {
-      ranges.push(Range.new(el));
+      ranges.push(new Range(el).init());
     }
 
     return ranges;
@@ -293,8 +292,10 @@
 
   // expose just what is needed
   var out = {
-    new: Range.new,
-    init: Range.init
+    'new': function(el) {
+      new Range(el).init();
+    },
+    'init': Range.init
   };
 
   var define = window['define'] || null;

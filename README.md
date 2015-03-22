@@ -34,7 +34,6 @@ input element, your events will fire as before.
 
 ### TODO
 
-* make it responsive
 * ie testing
 * round like real range input. value = min + n * step - test with weird attrs
 * correct number of steps - test with weird attrs

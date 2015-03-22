@@ -32,12 +32,20 @@ html
 
     script src="/range.js"
     javascript:
-      range = Range.init('.range');
+      Range.init('.range');
 
-      [].forEach.call(document.querySelectorAll('input'), function(i) {
-        i.addEventListener('change', function() {
-          console.log(this.value);
-        });
-      });
+      var inputs = document.querySelectorAll('input');
 
+      var onChange = function() {
+        console.log('change! - ' + this.value);
+      };
+
+      var onInput = function() {
+        console.log('input! - ' + this.value);
+      };
+
+      for(var i = 0, input; input = inputs[i]; i++) {
+        input.addEventListener('change', onChange);
+        input.addEventListener('input', onInput);
+      }
 
