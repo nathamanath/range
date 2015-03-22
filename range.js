@@ -22,7 +22,7 @@
       var event;
 
       if (document.createEvent) {
-        event = document.createEvent("HTMLEvents");
+        event = document.createEvent('HTMLEvents');
         event.initEvent(eventName, true, true);
       } else {
         event = document.createEventObject();
@@ -46,7 +46,7 @@
       if (document.createEvent) {
         el.dispatchEvent(event);
       } else {
-        el.fireEvent("on" + event.eventType, event);
+        el.fireEvent('on' + event.eventType, event);
       }
     },
 
@@ -70,7 +70,7 @@
     this.step = parseFloat(el.getAttribute('step')) || 1;
 
     this.mouseDown = false;
-  }
+  };
 
   /** @memberof Range */
   Range.prototype = {
@@ -78,6 +78,10 @@
       this._render();
       this._bindEvents();
       this._setValue(this.value);
+
+      if(this.input.getAttribute('list')) {
+        this._generateTicks();
+      }
 
       return this;
     },
@@ -90,6 +94,29 @@
       input.parentNode.insertBefore(this._template(), input.nextSibling);
 
       this._getDimensions();
+    },
+
+    _generateTicks: function() {
+      var el = document.createElement('div');
+
+      el.className = 'ticks';
+
+      var steps = (this.max - this.min) / this.step;
+      var stepPercent = 100 / steps;
+
+      for(var i = 0; i < steps; i++) {
+        var tick = document.createElement('div');
+
+        var left = stepPercent * i;
+
+        tick.className = 'tick';
+        tick.style.position = 'absolute';
+        tick.style.left = [left, '%'].join('');
+
+        el.appendChild(tick);
+      }
+
+      this.el.appendChild(el);
     },
 
     _getDimensions: function() {
@@ -110,7 +137,7 @@
       this.pointer.className = 'point';
       this.pointer.style.position = 'absolute';
 
-      this.el.appendChild(this.pointer)
+      this.el.appendChild(this.pointer);
 
       return this.el;
     },
@@ -129,10 +156,10 @@
       // TODO: Share resize event across all instances + throtle
       window.addEventListener('resize', function(e) {
         that._onResize(e);
-      })
+      });
     },
 
-    _onResize: function(e) {
+    _onResize: function() {
       this._getDimensions();
       this._setValue(this.value);
     },
@@ -157,12 +184,12 @@
         that._input(e);
       };
 
-      var onUp = function(e) {
+      var onUp = function() {
         that._change();
 
         window.removeEventListener('mousemove',  onMove);
         window.removeEventListener('mouseup', onUp);
-      }
+      };
 
       window.addEventListener('mousemove',  onMove);
       window.addEventListener('mouseup', onUp);
@@ -170,17 +197,37 @@
       H.fireEvent(this.input, 'mousedown');
     },
 
-    _onMouseUp: function(e) {
+    _onMouseUp: function() {
       this._change();
 
       H.fireEvent(this.input, 'mouseup');
       H.fireEvent(this.input, 'click');
     },
 
-    _input: function(e) {
-      var x = (typeof e.pageX !== 'undefined') ? e.pageX : window.event.clientX;
+    _getMouseX: (function() {
+      var out;
 
-      var value = parseFloat(this._scale(x - this.xMin, 0, this.xMax - this.pointerWidth, this.min, this.max));
+      if(typeof window.event === 'undefined') {
+        out = function(e) {
+          return e.pageX;
+        };
+      } else {
+        out = function() {
+          return window.event.clientX;
+        };
+      }
+
+      return out;
+    })(),
+
+    _input: function(e) {
+      var x = this._getMouseX(e);
+
+      var offsetX = x - this.xMin;
+      var from = [0, this.xMax - this.pointerWidth];
+      var to = [this.min, this.max];
+
+      var value = parseFloat(this._scale(offsetX, from, to));
 
       this._setValue(value);
 
@@ -196,10 +243,15 @@
       this.input.value = this.newValue;
 
       // set pointer position
+      var hpw = this.pointerWidth * 0.5;
       var maxLeft = this.xMax - this.pointerWidth;
-      var left = this._scale(limited, this.min, this.max, 0, maxLeft) || 0;
+      var from = [this.min, this.max];
+      var to = [0 - hpw, maxLeft + hpw];
 
-      this.pointer.style.left = [parseInt(left), 'px'].join('');
+      // TODO: shouldnt need the || 0
+      var left = this._scale(limited, from, to) || 0;
+
+      this.pointer.style.left = [parseInt(left, 10), 'px'].join('');
     },
 
     _change: function() {
@@ -223,14 +275,18 @@
     /**
      * @private
      * @param {number} value - number to be rounded
-     * @param {number} srcLow - min value
-     * @param {number} srcHigh - max value
-     * @param {number} destLow - min output
-     * @param {number} destHigh - max output
+     * @param {array} rangeFrom - Source range: [srcLow, srcHigh]
+     * @param {array} rangeTo - Destination range: [destLow, destHigh]
      * @returns {number} - value scaled between destLow, and destHigh
      */
-    _scale: function(value, srcLow, srcHigh, destLow, destHigh) {
-      return ((value - srcLow) / (srcHigh - srcLow)) * (destHigh - destLow) + destLow;
+    _scale: function(value, rangeFrom, rangeTo) {
+      var srcLow = rangeFrom[0];
+      var srcHigh = rangeFrom[1];
+      var destLow = rangeTo[0];
+      var destHigh = rangeTo[1];
+
+      var preMapped = (value - srcLow) / (srcHigh - srcLow);
+      return preMapped * (destHigh - destLow) + destLow;
     },
 
     /**
@@ -258,21 +314,21 @@
      * @returns {array} Range instances
      */
     'init': function(selector) {
-      selector = selector || 'input[type=range]'
+      selector = selector || 'input[type=range]';
       var els = document.querySelectorAll(selector);
       var ranges = [];
 
-      for(var i = 0, el; el = els[i]; i++) {
-        ranges.push(this['new'](el)); // 'cause ie8
+      for(var i = 0, l = els.length; i < l; i++) {
+        ranges.push(this['new'](els[i])); // 'cause ie8
       }
 
       return ranges;
     }
   };
 
-  var define = window['define'] || null;
+  var define = window.define || null;
 
-  if(typeof define === 'function' && define['amd']) {
+  if(typeof define === 'function' && define.amd) {
     define('range', [], function(){ return out; });
   } else {
     window.Range = out;

@@ -1,4 +1,5 @@
 require 'uglifier'
+require "jshintrb/jshinttask"
 
 task default: :build
 
@@ -14,6 +15,11 @@ task :js do
 end
 
 task :docs do
-  `jsdoc -d doc range.js`
+  `jsdoc README.md -d doc range.js`
+end
+
+Jshintrb::JshintTask.new :jshint do |t|
+  t.pattern = 'range.js'
+  t.options = JSON.parse(IO.read('.jshintrc'))
 end
 
