@@ -146,6 +146,7 @@
       };
 
       var onUp = function(e) {
+        that._change();
         Helpers.removeEvent(window, 'mousemove',  onMove);
         Helpers.removeEvent(window, 'mouseup', onUp);
       }
