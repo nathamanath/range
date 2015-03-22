@@ -71,7 +71,7 @@
       }
     },
 
-    redraw: function(el) {
+    paint: function(el) {
       return el.offsetHeight;
     }
   };
@@ -110,10 +110,12 @@
 
       this.input.parentNode.insertBefore(this._template(), this.input.nextSibling);
 
-      Helpers.redraw(this.pointer);
+      this._getDimensions();
+    },
 
+    _getDimensions: function() {
+      Helpers.paint(this.pointer);
       this.pointerWidth = this.pointer.offsetWidth;
-
       var rect = this.el.getBoundingClientRect();
 
       this.xMin = rect.left;
@@ -137,8 +139,23 @@
     _bindEvents: function() {
       var that = this;
 
-      Helpers.addEvent(this.el, 'mousedown', function(e) { that._onMouseDown(e); });
-      Helpers.addEvent(this.el, 'mouseup', function(e) { that._onMouseUp(e); });
+      Helpers.addEvent(this.el, 'mousedown', function(e) {
+        that._onMouseDown(e);
+      });
+
+      Helpers.addEvent(this.el, 'mouseup', function(e) {
+        that._onMouseUp(e);
+      });
+
+      // TODO: Share event across all instances
+      Helpers.addEvent(window, 'resize', function(e) {
+        that._onResize(e);
+      })
+    },
+
+    _onResize: function(e) {
+      this._getDimensions();
+      this._setValue(this.value);
     },
 
     _onMouseDown: function(e) {
@@ -195,7 +212,7 @@
     },
 
     _setValue: function(value) {
-      // round to nearest step + min limit between min and max
+      // round to nearest step limit between min and max
       var rounded = this._round(value);
       var limited = this._limitToRange(rounded);
       this.newValue = limited;
