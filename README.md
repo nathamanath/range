@@ -39,7 +39,6 @@ input element, your events will fire as before.
 ### TODO:
 
 * drag and drop not working in ie8
-* ticks
 * transformX over left when possible
 * better docs
 * tests
