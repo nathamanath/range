@@ -1,4 +1,4 @@
-# Range select polyfil / replacement
+# Range select replacement
 
 'cause they don't work in ie <= 9, and they are inconsistent in proper browsers.
 
@@ -36,7 +36,7 @@ input element, your events will fire as before.
 
 ## Development
 
-### Known issue
+### TODO:
 
 * drag and drop not working in ie8
 * ticks
