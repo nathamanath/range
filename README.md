@@ -45,4 +45,5 @@ input element, your events will fire as before.
 * refactor quite a bit
 * work out all required events
 * keypress support
+* list support
 

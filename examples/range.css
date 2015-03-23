@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box
+}
+
 input {
   width: 100%;
 }
@@ -8,7 +12,7 @@ input {
 }
 
 .range-replacement .point {
-  width: 10%;
+  width: 20px;
   height: 10px;
   background: red;
 }

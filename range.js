@@ -2,7 +2,7 @@
  * @fileoverview Range input replacement
  * @author NathanG
  * @license MIT
- * @version 0.0.1
+ * @version 0.0.2
  */
 
 (function(document, window) {
@@ -253,8 +253,6 @@
       var maxLeft = this.xMax;
       var from = [this.min, this.max];
       var to = [0, maxLeft];
-
-      // POINTER WIDTH
 
       // TODO: shouldnt need the || 0
       var left = this._scale(this._round(value), from, to) || 0;
