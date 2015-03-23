@@ -257,7 +257,7 @@
       // POINTER WIDTH
 
       // TODO: shouldnt need the || 0
-      var left = this._scale(value, from, to) || 0;
+      var left = this._scale(this._round(value), from, to) || 0;
 
       this.pointer.style.left = [parseInt(left - hpw, 10), 'px'].join('');
     },
