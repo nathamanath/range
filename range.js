@@ -133,10 +133,14 @@
       this.el.className = 'range-replacement';
       this.el.style.position = 'relative';
 
+      this.track = document.createElement('div');
+      this.track.className = 'track'
+
       this.pointer = document.createElement('div');
       this.pointer.className = 'point';
       this.pointer.style.position = 'absolute';
 
+      this.el.appendChild(this.track);
       this.el.appendChild(this.pointer);
 
       return this.el;
@@ -223,11 +227,13 @@
     _input: function(e) {
       var x = this._getMouseX(e);
 
+      var hpw = this.pointerWidth * 0.5;
+
       var offsetX = x - this.xMin;
-      var from = [0, this.xMax - this.pointerWidth];
+      var from = [0, this.xMax];
       var to = [this.min, this.max];
 
-      var value = parseFloat(this._scale(offsetX, from, to));
+      var value = parseFloat(this._limitToRange(this._scale(offsetX, from, to)));
 
       this._setValue(value);
 
@@ -244,14 +250,16 @@
 
       // set pointer position
       var hpw = this.pointerWidth * 0.5;
-      var maxLeft = this.xMax - this.pointerWidth;
+      var maxLeft = this.xMax;
       var from = [this.min, this.max];
-      var to = [0 - hpw, maxLeft + hpw];
+      var to = [0, maxLeft];
+
+      // POINTER WIDTH
 
       // TODO: shouldnt need the || 0
-      var left = this._scale(limited, from, to) || 0;
+      var left = this._scale(value, from, to) || 0;
 
-      this.pointer.style.left = [parseInt(left, 10), 'px'].join('');
+      this.pointer.style.left = [parseInt(left - hpw, 10), 'px'].join('');
     },
 
     _change: function() {
@@ -281,11 +289,10 @@
      */
     _scale: function(value, rangeFrom, rangeTo) {
       var srcLow = rangeFrom[0];
-      var srcHigh = rangeFrom[1];
       var destLow = rangeTo[0];
       var destHigh = rangeTo[1];
 
-      var preMapped = (value - srcLow) / (srcHigh - srcLow);
+      var preMapped = (value - srcLow) / (rangeFrom[1] - srcLow);
       return preMapped * (destHigh - destLow) + destLow;
     },
 
