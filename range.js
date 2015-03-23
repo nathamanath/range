@@ -10,6 +10,9 @@
 
   /**
    * Helper methods
+   *
+   * @class H
+   * @private
    */
   var H = {
     /** custom event cache */
@@ -50,6 +53,10 @@
       }
     },
 
+    /**
+     * Force repaint of element
+     * @param {object} el - DOM node to pe repainted
+     */
     paint: function(el) {
       return el.offsetHeight;
     }
@@ -88,11 +95,11 @@
 
     _render: function() {
       var input = this.input;
+      this.el = this._template();
 
       input.style.display = 'none';
 
-      input.parentNode.insertBefore(this._template(), input.nextSibling);
-
+      input.parentNode.insertBefore(this.el, input.nextSibling);
       this._getDimensions();
     },
 
@@ -104,19 +111,28 @@
       var steps = (this.max - this.min) / this.step;
       var stepPercent = 100 / steps;
 
+      var offset;
+
       for(var i = 0; i < steps; i++) {
-        var tick = document.createElement('div');
-
-        var left = stepPercent * i;
-
-        tick.className = 'tick';
-        tick.style.position = 'absolute';
-        tick.style.left = [left, '%'].join('');
-
-        el.appendChild(tick);
+        offset = stepPercent * i;
+        el.appendChild(this._generateTick(offset));
       }
 
       this.el.appendChild(el);
+    },
+
+    /**
+     * @private
+     * @param {integer} offset - tick offset in %
+     */
+    _generateTick: function(offset) {
+      var tick = document.createElement('div');
+
+      tick.className = 'tick';
+      tick.style.position = 'absolute';
+      tick.style.left = [offset, '%'].join('');
+
+      return tick;
     },
 
     _getDimensions: function() {
@@ -129,21 +145,40 @@
     },
 
     _template: function() {
-      this.el = document.createElement('div');
-      this.el.className = 'range-replacement';
-      this.el.style.position = 'relative';
 
-      this.track = document.createElement('div');
-      this.track.className = 'track'
+      var el = this._rangeEl();
+      this.track = this._trackEl();
+      this.pointer = this._pointerEl();
 
-      this.pointer = document.createElement('div');
-      this.pointer.className = 'point';
-      this.pointer.style.position = 'absolute';
+      el.appendChild(this.track);
+      el.appendChild(this.pointer);
 
-      this.el.appendChild(this.track);
-      this.el.appendChild(this.pointer);
+      return el;
+    },
 
-      return this.el;
+    _rangeEl: function() {
+      var  el = document.createElement('div');
+
+      el.className = 'range-replacement';
+      el.style.position = 'relative';
+
+      return el;
+    },
+
+    _trackEl: function() {
+      var track = document.createElement('div');
+      track.className = 'track';
+
+      return track;
+    },
+
+    _pointerEl: function() {
+      var pointer = document.createElement('div');
+
+      pointer.className = 'point';
+      pointer.style.position = 'absolute';
+
+      return pointer;
     },
 
     _bindEvents: function() {
@@ -159,11 +194,14 @@
 
       // TODO: Share resize event across all instances + throtle
       window.addEventListener('resize', function(e) {
-        that._onResize(e);
+        that.update(e);
       });
     },
 
-    _onResize: function() {
+    /**
+     * update element dimensions, and reset value and pointer position
+     */
+    update: function() {
       this._getDimensions();
       this._setValue(this.value);
     },
@@ -225,15 +263,17 @@
     })(),
 
     _input: function(e) {
-      var x = this._getMouseX(e);
+      // OPTIMIZE: How not ot call this each time?
+      this.update();
 
-      var hpw = this.pointerWidth * 0.5;
+      var x = this._getMouseX(e);
 
       var offsetX = x - this.xMin;
       var from = [0, this.xMax];
       var to = [this.min, this.max];
 
-      var value = parseFloat(this._limitToRange(this._scale(offsetX, from, to)));
+      var scaled = this._scale(offsetX, from, to);
+      var value = parseFloat(this._limitToRange(scaled));
 
       this._setValue(value);
 
@@ -243,39 +283,35 @@
 
     _setValue: function(value) {
       // round to nearest step limit between min and max
-      var rounded = this._round(value);
-      var limited = this._limitToRange(rounded);
-      this.newValue = limited;
-      this.input.value = this.newValue;
+      var rounded = this._limitToRange(this._round(value));
+
+      this.input.value = this.newValue = rounded;
 
       // set pointer position
-      var hpw = this.pointerWidth * 0.5;
-      var maxLeft = this.xMax;
+      var hpw = this.pointerWidth / 2;
       var from = [this.min, this.max];
-      var to = [0, maxLeft];
+      var to = [0, this.xMax];
 
-      // TODO: shouldnt need the || 0
-      var left = this._scale(this._round(value), from, to) || 0;
+      var left = this._scale(rounded, from, to) || 0;
 
       this.pointer.style.left = [parseInt(left - hpw, 10), 'px'].join('');
     },
 
     _change: function() {
-      if(this.oldValue !== this.newValue) {
-        this.value = this.newValue;
+      var newValue = this.newValue;
+      var input = this.input;
 
-        this.input.value = this.oldValue = this.value;
+      if(this.oldValue !== newValue) {
+        this.value = newValue;
 
-        H.fireEvent(this.input, 'change');
+        input.value = this.oldValue = this.value;
+
+        H.fireEvent(input, 'change');
       }
     },
 
     _limitToRange: function(n) {
-      return this._limit(n, this.max, this.min);
-    },
-
-    _limit: function(n, max, min) {
-      return Math.min(Math.max(n, min), max);
+      return Math.min(Math.max(n, this.min), this.max);
     },
 
     /**
@@ -304,39 +340,36 @@
     }
   };
 
-  /** @lends Range */
-  var out = {
-    /**
-     * @param {object} el - input to replace
-     * @returns {object} Range instance
-     */
-    'new': function(el) {
-      return new Range(el).init();
-    },
+  /**
+   * @param {object} el - input to replace
+   * @returns {object} Range instance
+   */
+  Range['new'] = function(el) { // ie8 dont like .new
+    return new Range(el).init();
+  };
 
-    /**
-     * @param {string} [selector] - css selector for ranges to replace
-     * @returns {array} Range instances
-     */
-    'init': function(selector) {
-      selector = selector || 'input[type=range]';
-      var els = document.querySelectorAll(selector);
-      var ranges = [];
+  /**
+   * @param {string} [selector] - css selector for ranges to replace
+   * @returns {array} Range instances
+   */
+  Range.init = function(selector) {
+    selector = selector || 'input[type=range]';
+    var els = document.querySelectorAll(selector);
+    var ranges = [];
 
-      for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(this['new'](els[i])); // 'cause ie8
-      }
-
-      return ranges;
+    for(var i = 0, l = els.length; i < l; i++) {
+      ranges.push(this['new'](els[i]));
     }
+
+    return ranges;
   };
 
   var define = window.define || null;
 
   if(typeof define === 'function' && define.amd) {
-    define('range', [], function(){ return out; });
+    define('range', [], function(){ return Range; });
   } else {
-    window.Range = out;
+    window.Range = Range;
   }
 
 })(document, window);
