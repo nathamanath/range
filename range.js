@@ -95,11 +95,11 @@
 
     _render: function() {
       var input = this.input;
+      this.el = this._template();
 
       input.style.display = 'none';
 
-      input.parentNode.insertBefore(this._template(), input.nextSibling);
-
+      input.parentNode.insertBefore(this.el, input.nextSibling);
       this._getDimensions();
     },
 
@@ -111,19 +111,28 @@
       var steps = (this.max - this.min) / this.step;
       var stepPercent = 100 / steps;
 
+      var offset;
+
       for(var i = 0; i < steps; i++) {
-        var tick = document.createElement('div');
-
-        var left = stepPercent * i;
-
-        tick.className = 'tick';
-        tick.style.position = 'absolute';
-        tick.style.left = [left, '%'].join('');
-
-        el.appendChild(tick);
+        offset = stepPercent * i;
+        el.appendChild(this._generateTick(offset));
       }
 
       this.el.appendChild(el);
+    },
+
+    /**
+     * @private
+     * @param {integer} offset - tick offset in %
+     */
+    _generateTick: function(offset) {
+      var tick = document.createElement('div');
+
+      tick.className = 'tick';
+      tick.style.position = 'absolute';
+      tick.style.left = [offset, '%'].join('');
+
+      return tick;
     },
 
     _getDimensions: function() {
@@ -136,21 +145,40 @@
     },
 
     _template: function() {
-      this.el = document.createElement('div');
-      this.el.className = 'range-replacement';
-      this.el.style.position = 'relative';
 
-      this.track = document.createElement('div');
-      this.track.className = 'track';
+      var el = this._rangeEl();
+      this.track = this._trackEl();
+      this.pointer = this._pointerEl();
 
-      this.pointer = document.createElement('div');
-      this.pointer.className = 'point';
-      this.pointer.style.position = 'absolute';
+      el.appendChild(this.track);
+      el.appendChild(this.pointer);
 
-      this.el.appendChild(this.track);
-      this.el.appendChild(this.pointer);
+      return el;
+    },
 
-      return this.el;
+    _rangeEl: function() {
+      var  el = document.createElement('div');
+
+      el.className = 'range-replacement';
+      el.style.position = 'relative';
+
+      return el;
+    },
+
+    _trackEl: function() {
+      var track = document.createElement('div');
+      track.className = 'track';
+
+      return track;
+    },
+
+    _pointerEl: function() {
+      var pointer = document.createElement('div');
+
+      pointer.className = 'point';
+      pointer.style.position = 'absolute';
+
+      return pointer;
     },
 
     _bindEvents: function() {
@@ -316,7 +344,7 @@
    * @param {object} el - input to replace
    * @returns {object} Range instance
    */
-  Range['new'] = function(el) {
+  Range['new'] = function(el) { // ie8 dont like .new
     return new Range(el).init();
   };
 
@@ -330,7 +358,7 @@
     var ranges = [];
 
     for(var i = 0, l = els.length; i < l; i++) {
-      ranges.push(this['new'](els[i])); // 'cause ie8
+      ranges.push(this['new'](els[i]));
     }
 
     return ranges;
