@@ -45,6 +45,6 @@ input element, your events will fire as before.
 * refactor quite a bit
 * work out all required events
 * keypress support
-* list support
+* list attr support
 * should stay up to date when range input is updated programmatically
 

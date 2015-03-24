@@ -15,6 +15,21 @@
    * @private
    */
   var H = {
+    throttle: function(callback, limit) {
+      var throttling = false;
+
+      return function() {
+        if(!throttling) {
+          callback.apply(this, arguments);
+          throttling = true;
+
+          setTimeout(function() {
+            throttling = false;
+          }, limit);
+        }
+      };
+    },
+
     /** custom event cache */
     _events: {},
 
@@ -51,14 +66,6 @@
       } else {
         el.fireEvent('on' + event.eventType, event);
       }
-    },
-
-    /**
-     * Force repaint of element
-     * @param {object} el - DOM node to pe repainted
-     */
-    paint: function(el) {
-      return el.offsetHeight;
     }
   };
 
@@ -75,8 +82,6 @@
     this.max = parseFloat(el.getAttribute('max')) || 100;
     this.min = parseFloat(el.getAttribute('min')) || 0;
     this.step = parseFloat(el.getAttribute('step')) || 1;
-
-    this.mouseDown = false;
   };
 
   /** @memberof Range */
@@ -136,7 +141,6 @@
     },
 
     _getDimensions: function() {
-      H.paint(this.pointer);
       this.pointerWidth = this.pointer.offsetWidth;
       var rect = this.el.getBoundingClientRect();
 
@@ -191,17 +195,14 @@
       this.el.addEventListener('mouseup', function(e) {
         that._onMouseUp(e);
       });
-
-      // TODO: Share resize event across all instances + throtle
-      window.addEventListener('resize', function(e) {
-        that.update(e);
-      });
     },
 
     /**
      * update element dimensions, and reset value and pointer position
      */
     update: function() {
+      this.value = parseFloat(this.input.value);
+
       this._getDimensions();
       this._setValue(this.value);
     },
@@ -340,12 +341,29 @@
     }
   };
 
+  /** Range instances */
+  Range.ranges = [];
+
+  (function(ranges) {
+    // Update ranges on window resize
+
+    var throttled = H.throttle(function(ranges) {
+      for(var i = 0, l = ranges.length; i < l; i++) {
+        ranges[i].update();
+      }
+    }, 1000 / 60);
+
+    window.addEventListener('resize', function() {
+      throttled(ranges);
+    });
+  })(Range.ranges);
+
   /**
    * @param {object} el - input to replace
    * @returns {object} Range instance
    */
   Range['new'] = function(el) { // ie8 dont like .new
-    return new Range(el).init();
+    return Range.ranges.push(new Range(el).init());
   };
 
   /**
