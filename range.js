@@ -2,7 +2,7 @@
  * @fileoverview Range input replacement
  * @author NathanG
  * @license MIT
- * @version 0.0.2
+ * @version 0.0.3
  */
 
 (function(document, window) {
@@ -15,17 +15,28 @@
    * @private
    */
   var H = {
-    throttle: function(callback, limit) {
-      var throttling = false;
+    throttle: function(callback, delay, trail) {
+      var last = 0;
+      var timeout, args, context;
+      var offset = (trail === false) ? 0 : delay;
 
       return function() {
-        if(!throttling) {
-          callback.apply(this, arguments);
-          throttling = true;
+        var now = +new Date;
+        var elapsed = (now - last - offset);
 
-          setTimeout(function() {
-            throttling = false;
-          }, limit);
+        args = arguments;
+        context = this;
+
+        var exec = function() {
+          timeout && (timeout = clearTimeout(timeout));
+          callback.apply(context, args);
+          last = now;
+        };
+
+        if(elapsed > delay) {
+          exec();
+        } else if(!timeout && trail !== false) {
+          timeout = setTimeout(exec, delay);
         }
       };
     },
@@ -351,7 +362,7 @@
       for(var i = 0, l = ranges.length; i < l; i++) {
         ranges[i].update();
       }
-    }, 1000 / 60);
+    }, 1000 / 60, true);
 
     window.addEventListener('resize', function() {
       throttled(ranges);
