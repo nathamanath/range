@@ -66,14 +66,6 @@
       } else {
         el.fireEvent('on' + event.eventType, event);
       }
-    },
-
-    /**
-     * Force repaint of element
-     * @param {object} el - DOM node to pe repainted
-     */
-    paint: function(el) {
-      return el.offsetHeight;
     }
   };
 
@@ -149,7 +141,6 @@
     },
 
     _getDimensions: function() {
-      H.paint(this.pointer);
       this.pointerWidth = this.pointer.offsetWidth;
       var rect = this.el.getBoundingClientRect();
 
