@@ -27,7 +27,7 @@
             throttling = false;
           }, limit);
         }
-      }
+      };
     },
 
     /** custom event cache */
@@ -350,7 +350,6 @@
     }
   };
 
-
   /** Range instances */
   Range.ranges = [];
 
@@ -363,7 +362,7 @@
       }
     }, 1000 / 60);
 
-    window.addEventListener('resize', function(e) {
+    window.addEventListener('resize', function() {
       throttled(ranges);
     });
   })(Range.ranges);
