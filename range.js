@@ -15,31 +15,31 @@
    * @private
    */
   var H = {
-    throttle: function(callback, delay, trail) {
-      var last = 0;
-      var timeout, args, context;
-      var offset = (trail === false) ? 0 : delay;
-
-      return function() {
-        var now = +new Date;
-        var elapsed = (now - last - offset);
-
-        args = arguments;
-        context = this;
-
-        var exec = function() {
-          timeout && (timeout = clearTimeout(timeout));
-          callback.apply(context, args);
-          last = now;
-        };
-
-        if(elapsed > delay) {
-          exec();
-        } else if(!timeout && trail !== false) {
-          timeout = setTimeout(exec, delay);
-        }
-      };
-    },
+    // throttle: function(callback, delay, trail) {
+    //   var last = 0;
+    //   var timeout, args, context;
+    //   var offset = (trail === false) ? 0 : delay;
+    //
+    //   return function() {
+    //     var now = +new Date;
+    //     var elapsed = (now - last - offset);
+    //
+    //     args = arguments;
+    //     context = this;
+    //
+    //     var exec = function() {
+    //       timeout && (timeout = clearTimeout(timeout));
+    //       callback.apply(context, args);
+    //       last = now;
+    //     };
+    //
+    //     if(elapsed > delay) {
+    //       exec();
+    //     } else if(!timeout && trail !== false) {
+    //       timeout = setTimeout(exec, delay);
+    //     }
+    //   };
+    // },
 
     /** custom event cache */
     _events: {},
@@ -104,6 +104,13 @@
 
       if(this.input.getAttribute('list')) {
         this._generateTicks();
+
+        var pointerWidth = this.pointerWidth;
+        var hpw = pointerWidth / 2;
+
+        this.ticks.style.padding = ['0', hpw, 'px'].join('');
+        this.ticks.style.width = '100%';
+        this.ticks.style.position = 'absolute';
       }
 
       return this;
@@ -117,10 +124,20 @@
 
       input.parentNode.insertBefore(this.el, input.nextSibling);
       this._getDimensions();
+
+
+      this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
     },
 
+    // TODO: Tick positioning is wrong
     _generateTicks: function() {
       var el = document.createElement('div');
+      var inner = document.createElement('div');
+
+      inner.className = 'ticks-inner'
+      inner.style.width = '100%'
+      inner.style.position = 'relative'
+      el.appendChild(inner);
 
       el.className = 'ticks';
 
@@ -131,10 +148,12 @@
 
       for(var i = 0; i < steps; i++) {
         offset = stepPercent * i;
-        el.appendChild(this._generateTick(offset));
+        inner.appendChild(this._generateTick(offset));
       }
 
-      this.el.appendChild(el);
+      this.ticks = el;
+
+      this.el.appendChild(this.ticks);
     },
 
     /**
@@ -166,7 +185,7 @@
       this.pointer = this._pointerEl();
 
       el.appendChild(this.track);
-      el.appendChild(this.pointer);
+      this.track.appendChild(this.pointer);
 
       return el;
     },
@@ -176,6 +195,7 @@
 
       el.className = 'range-replacement';
       el.style.position = 'relative';
+      el.style.paddingRight = [this.pointerWidth, 'px'];
 
       return el;
     },
@@ -191,7 +211,7 @@
       var pointer = document.createElement('div');
 
       pointer.className = 'point';
-      pointer.style.position = 'absolute';
+      pointer.style.position = 'relative';
 
       return pointer;
     },
@@ -212,6 +232,7 @@
      * update element dimensions, and reset value and pointer position
      */
     update: function() {
+      // TODO: check round and limit this for old browsers
       this.value = parseFloat(this.input.value);
 
       this._getDimensions();
@@ -306,7 +327,14 @@
 
       var left = this._scale(rounded, from, to) || 0;
 
-      this.pointer.style.left = [parseInt(left - hpw, 10), 'px'].join('');
+      if(rounded !== this.oldValue) {
+        this.oldValue = this.value;
+        console.log('set')
+        // get rounded as % of max
+        var percent = rounded / this.max * 100;
+
+        this.pointer.style.left = [percent, '%'].join('');
+      }
     },
 
     _change: function() {
@@ -352,29 +380,30 @@
     }
   };
 
-  /** Range instances */
-  Range.ranges = [];
+  // /** Range instances */
+  // Range.ranges = [];
 
-  (function(ranges) {
-    // Update ranges on window resize
-
-    var throttled = H.throttle(function(ranges) {
-      for(var i = 0, l = ranges.length; i < l; i++) {
-        ranges[i].update();
-      }
-    }, 1000 / 60, true);
-
-    window.addEventListener('resize', function() {
-      throttled(ranges);
-    });
-  })(Range.ranges);
+  // (function(ranges) {
+  //   // Update ranges on window resize
+  //
+  //   var throttled = H.throttle(function(ranges) {
+  //     for(var i = 0, l = ranges.length; i < l; i++) {
+  //       ranges[i].update();
+  //     }
+  //   }, 1000 / 60, true);
+  //
+  //   window.addEventListener('resize', function() {
+  //     throttled(ranges);
+  //   });
+  // })(Range.ranges);
 
   /**
    * @param {object} el - input to replace
    * @returns {object} Range instance
    */
   Range['new'] = function(el) { // ie8 dont like .new
-    return Range.ranges.push(new Range(el).init());
+    // return Range.ranges.push(new Range(el).init());
+    return new Range(el).init();
   };
 
   /**
