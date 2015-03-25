@@ -132,15 +132,29 @@
     // TODO: Tick positioning is wrong
     _generateTicks: function() {
       var el = document.createElement('div');
-      var inner = document.createElement('div');
+      var inner = this._generateTicksInner();
 
-      inner.className = 'ticks-inner'
-      inner.style.width = '100%'
-      inner.style.position = 'relative'
       el.appendChild(inner);
 
       el.className = 'ticks';
 
+      this._generateTickEls(inner);
+      this.ticks = el;
+
+      this.el.appendChild(this.ticks);
+    },
+
+    _generateTicksInner: function() {
+      var inner = document.createElement('div');
+
+      inner.className = 'ticks-inner';
+      inner.style.width = '100%';
+      inner.style.position = 'relative';
+
+      return inner;
+    },
+
+    _generateTickEls: function(inner) {
       var steps = (this.max - this.min) / this.step;
       var stepPercent = 100 / steps;
 
@@ -150,10 +164,6 @@
         offset = stepPercent * i;
         inner.appendChild(this._generateTick(offset));
       }
-
-      this.ticks = el;
-
-      this.el.appendChild(this.ticks);
     },
 
     /**
@@ -318,21 +328,12 @@
       // round to nearest step limit between min and max
       var rounded = this._limitToRange(this._round(value));
 
-      this.input.value = this.newValue = rounded;
 
-      // set pointer position
-      var hpw = this.pointerWidth / 2;
-      var from = [this.min, this.max];
-      var to = [0, this.xMax];
-
-      var left = this._scale(rounded, from, to) || 0;
-
+      // set pointer position only when value changes
       if(rounded !== this.oldValue) {
         this.oldValue = this.value;
-        console.log('set')
-        // get rounded as % of max
+        this.input.value = this.newValue = rounded;
         var percent = rounded / this.max * 100;
-
         this.pointer.style.left = [percent, '%'].join('');
       }
     },
