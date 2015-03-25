@@ -312,6 +312,7 @@
         if(rounded !== this.oldInputValue) {
           this.oldInputValue = this.value;
           this.input.value = this.newValue = rounded;
+          console.log(this.min)
           var percent = (rounded / this.max * 100) || 0;
           this.pointer.style.left = [percent, '%'].join('');
         }
