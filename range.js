@@ -104,6 +104,13 @@
 
       if(this.input.getAttribute('list')) {
         this._generateTicks();
+
+        var pointerWidth = this.pointerWidth;
+        var hpw = pointerWidth / 2;
+
+        this.ticks.style.padding = ['0', hpw, 'px'].join('');
+        this.ticks.style.width = '100%';
+        this.ticks.style.position = 'absolute';
       }
 
       return this;
@@ -117,10 +124,20 @@
 
       input.parentNode.insertBefore(this.el, input.nextSibling);
       this._getDimensions();
+
+
+      this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
     },
 
+    // TODO: Tick positioning is wrong
     _generateTicks: function() {
       var el = document.createElement('div');
+      var inner = document.createElement('div');
+
+      inner.className = 'ticks-inner'
+      inner.style.width = '100%'
+      inner.style.position = 'relative'
+      el.appendChild(inner);
 
       el.className = 'ticks';
 
@@ -131,10 +148,12 @@
 
       for(var i = 0; i < steps; i++) {
         offset = stepPercent * i;
-        el.appendChild(this._generateTick(offset));
+        inner.appendChild(this._generateTick(offset));
       }
 
-      this.el.appendChild(el);
+      this.ticks = el;
+
+      this.el.appendChild(this.ticks);
     },
 
     /**
@@ -192,7 +211,7 @@
       var pointer = document.createElement('div');
 
       pointer.className = 'point';
-      pointer.style.position = 'absolute';
+      pointer.style.position = 'relative';
 
       return pointer;
     },
