@@ -39,12 +39,11 @@ input element, your events will fire as before.
 ### TODO:
 
 * drag and drop not working in ie8
-* transformX over left when possible
 * better docs
 * tests
 * refactor quite a bit
 * work out all required events
 * keypress support
-* list support
-* should stay up to date when range input is updated programmatically
+* list attr support
+* ie8 custom events
 
