@@ -45,5 +45,4 @@ input element, your events will fire as before.
 * work out all required events
 * keypress support
 * list attr support
-* keep pointer within track
 
