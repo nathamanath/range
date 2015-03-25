@@ -2,7 +2,7 @@
  * @fileoverview Range input replacement
  * @author NathanG
  * @license MIT
- * @version 0.0.3
+ * @version 0.0.4
  */
 
 (function() {
