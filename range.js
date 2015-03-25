@@ -146,7 +146,7 @@
 
       var offset;
 
-      for(var i = 0; i < steps; i++) {
+      for(var i = 0; i <= steps; i++) {
         offset = stepPercent * i;
         inner.appendChild(this._generateTick(offset));
       }
