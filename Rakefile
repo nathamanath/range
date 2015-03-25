@@ -1,25 +1,38 @@
 require 'uglifier'
 require "jshintrb/jshinttask"
 
+def source_file
+  File.expand_path '../range.js', __FILE__
+end
+
+def min_file
+  "#{ File.basename source_file, '.js' }.min.js"
+end
+
 task default: :build
 
-task build: [:js, :docs]
+task build: [:js, :docs, :docs]
 
 task :js do
-  js = File.read File.expand_path('../range.js', __FILE__)
+  js = File.read source_file
   ugly = Uglifier.compile js
 
-  File.open(File.expand_path('../range.min.js', __FILE__), 'w+') do |f|
+  File.open(min_file, 'w+') do |f|
     f.puts ugly
   end
 end
 
 task :docs do
-  `jsdoc README.md -d doc range.js`
+  `jsdoc README.md -d doc #{source_file}`
+end
+
+task :server do
+  FileUtils.cd File.expand_path('../examples', __FILE__)
+  `python -m SimpleHTTPServer`
 end
 
 Jshintrb::JshintTask.new :jshint do |t|
-  t.pattern = 'range.js'
+  t.pattern = source_file
   t.options = JSON.parse(IO.read('.jshintrc'))
 end
 
