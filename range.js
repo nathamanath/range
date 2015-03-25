@@ -231,7 +231,7 @@
        */
       update: function() {
         // TODO: check round and limit this for old browsers
-        this.value = parseFloat(this.input.value);
+        this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
         this._setValue(this.value);
@@ -295,25 +295,24 @@
         var to = [this.min, this.max];
 
         var scaled = this._scale(offsetX, from, to);
-        var value = parseFloat(this._limitToRange(scaled));
 
-        this._setValue(value);
+        this._setValue(scaled);
 
         // TODO: ie8 dosent like doing this...
         H.fireEvent(this.input, 'input');
       },
 
       _setValue: function(value) {
-        // round to nearest step limit between min and max
-        var rounded = this._limitToRange(this._round(value));
-
+        var rounded = this._roundAndLimit(value);
 
         // set pointer position only when value changes
         if(rounded !== this.oldInputValue) {
           this.oldInputValue = this.value;
           this.input.value = this.newValue = rounded;
-          console.log(this.min)
-          var percent = (rounded / this.max * 100) || 0;
+
+          var min = this.min;
+
+          var percent = ((rounded - min) / (this.max - min) * 100) || 0;
           this.pointer.style.left = [percent, '%'].join('');
         }
       },
@@ -322,17 +321,19 @@
         var newValue = this.newValue;
         var input = this.input;
 
-
-
         if(this.oldValue !== newValue) {
-          this.value = newValue;
-          input.value = this.oldValue = this.value;
+          input.value = this.oldValue = this.value = newValue;
           H.fireEvent(input, 'change');
         }
       },
 
-      _limitToRange: function(n) {
-        return Math.min(Math.max(n, this.min), this.max);
+      /**
+       * round to nearest step limit between min and max
+       * @private
+       */
+      _roundAndLimit: function(n) {
+        var rounded = Math.round(n / this.step) * this.step;
+        return Math.min(Math.max(rounded, this.min), this.max);
       },
 
       /**
@@ -349,15 +350,6 @@
 
         var preMapped = (value - srcLow) / (rangeFrom[1] - srcLow);
         return preMapped * (destHigh - destLow) + destLow;
-      },
-
-      /**
-       * @private
-       * @param {number} n - to be rounded
-       * @returns {integer} - n rounded to nearest this.step
-       */
-      _round: function(n) {
-        return Math.round(n / this.step) * this.step;
       }
     };
 
@@ -366,7 +358,6 @@
      * @returns {object} Range instance
      */
     Range['new'] = function(el) { // ie8 dont like .new
-      // return Range.ranges.push(new Range(el).init());
       return new Range(el).init();
     };
 
@@ -390,3 +381,4 @@
 
   })(document, window));
 }).call(window);
+
