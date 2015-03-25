@@ -244,15 +244,6 @@
 
         var that = this;
 
-        var mouseUpdate = function(e) {
-          that._input(e);
-          that._change();
-
-          if(that.mouseDown) {
-            mouseUpdate(e);
-          }
-        };
-
         var onMove = function(e) {
           that._input(e);
         };
@@ -318,8 +309,8 @@
 
 
         // set pointer position only when value changes
-        if(rounded !== this.oldValue) {
-          this.oldValue = this.value;
+        if(rounded !== this.oldInputValue) {
+          this.oldInputValue = this.value;
           this.input.value = this.newValue = rounded;
           var percent = (rounded / this.max * 100) || 0;
           this.pointer.style.left = [percent, '%'].join('');
@@ -330,11 +321,11 @@
         var newValue = this.newValue;
         var input = this.input;
 
+
+
         if(this.oldValue !== newValue) {
           this.value = newValue;
-
           input.value = this.oldValue = this.value;
-
           H.fireEvent(input, 'change');
         }
       },
