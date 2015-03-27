@@ -31,8 +31,7 @@ task :docs do
 end
 
 task :server do
-  FileUtils.cd File.expand_path('../examples', __FILE__)
-  `python -m SimpleHTTPServer`
+  `ruby -run -e httpd ./examples -p 8000`
 end
 
 Jshintrb::JshintTask.new :jshint do |t|

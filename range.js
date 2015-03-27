@@ -198,6 +198,7 @@
         return el;
       },
 
+      /** @private generates track html */
       _trackEl: function() {
         var track = document.createElement('div');
         track.className = 'track';
@@ -205,6 +206,7 @@
         return track;
       },
 
+      /** @private generates pointer html */
       _pointerEl: function() {
         var pointer = document.createElement('div');
 
@@ -228,6 +230,7 @@
 
       /**
        * update element dimensions, and reset value and pointer position
+       * to that of this.input
        */
       update: function() {
         // TODO: check round and limit this for old browsers
@@ -268,6 +271,12 @@
         H.fireEvent(this.input, 'click');
       },
 
+      /**
+       * Get x position of mouse during event
+       *
+       * @private
+       * @param {object} e - event instance
+       */
       _getMouseX: (function() {
         var out;
 
@@ -284,8 +293,13 @@
         return out;
       })(),
 
+      /**
+       * Handle input event
+       *
+       * @private
+       */
       _input: function(e) {
-        // OPTIMIZE: How not ot call this each time?
+        // OPTIMIZE: How not to call this each time?
         this.update();
 
         var x = this._getMouseX(e);
@@ -302,6 +316,11 @@
         H.fireEvent(this.input, 'input');
       },
 
+      /**
+       * Set new value
+       *
+       * @private
+       */
       _setValue: function(value) {
         var rounded = this._roundAndLimit(value);
 
@@ -317,6 +336,11 @@
         }
       },
 
+      /**
+       * Handle change of value if changed
+       *
+       * @private
+       */
       _change: function() {
         var newValue = this.newValue;
         var input = this.input;
@@ -328,11 +352,20 @@
       },
 
       /**
-       * round to nearest step limit between min and max
+       * Round to nearest step limit between min and max
+       * Also ensure same decimal places as step for ie <= 9's sake. >:0
+       *
        * @private
        */
       _roundAndLimit: function(n) {
+
+        // count # of decimals in this.step
+        var decimals = (this.step + '').split('.')[1];
+        places = (decimals) ? decimals.length : 0;
+
         var rounded = Math.round(n / this.step) * this.step;
+        rounded = rounded.toFixed(places);
+
         return Math.min(Math.max(rounded, this.min), this.max);
       },
 
