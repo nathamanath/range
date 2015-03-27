@@ -239,7 +239,6 @@
        * to that of this.input
        */
       update: function() {
-        // TODO: check round and limit this for old browsers
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
@@ -306,7 +305,7 @@
        */
       _input: function(e) {
         // OPTIMIZE: How not to call this each time?
-        this.update();
+        // this._getDimensions();
 
         var x = this._getMouseX(e);
 
@@ -316,10 +315,7 @@
 
         var scaled = this._scale(offsetX, from, to);
 
-        this._setValue(scaled);
-
-        // TODO: ie8 dosent like doing this...
-        H.fireEvent(this.input, 'input');
+        this._setValue(this._roundAndLimit(scaled));
       },
 
       /**
@@ -328,17 +324,17 @@
        * @private
        */
       _setValue: function(value) {
-        var rounded = this._roundAndLimit(value);
-
         // set pointer position only when value changes
-        if(rounded !== this.oldInputValue) {
-          this.oldInputValue = this.value;
-          this.input.value = this.newValue = rounded;
+        if(value !== this.oldInputValue) {
+          this.oldInputValue = this.input.value = this.newValue = value;
 
           var min = this.min;
 
-          var percent = ((rounded - min) / (this.max - min) * 100) || 0;
+          var percent = ((value - min) / (this.max - min) * 100) || 0;
           this.pointer.style.left = [percent, '%'].join('');
+
+          // TODO: ie8 dosent like doing this...
+          H.fireEvent(this.input, 'input');
         }
       },
 
@@ -367,7 +363,7 @@
 
         // count # of decimals in this.step
         var decimals = (this.step + '').split('.')[1];
-        places = (decimals) ? decimals.length : 0;
+        var places = (decimals) ? decimals.length : 0;
 
         var rounded = Math.round(n / this.step) * this.step;
         rounded = rounded.toFixed(places);
