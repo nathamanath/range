@@ -18,9 +18,6 @@ task :js do
   js = File.read source_file
   ugly = Uglifier.compile js
 
-  puts ugly
-  puts min_file
-
   File.open(min_file, 'w+') do |f|
     f.puts ugly
   end
