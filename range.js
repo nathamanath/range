@@ -198,7 +198,10 @@
         return el;
       },
 
-      /** @private generates track html */
+      /**
+       * generates track html
+       * @private
+       */
       _trackEl: function() {
         var track = document.createElement('div');
         track.className = 'track';
@@ -206,7 +209,10 @@
         return track;
       },
 
-      /** @private generates pointer html */
+      /**
+       * generates pointer html
+       * @private
+       */
       _pointerEl: function() {
         var pointer = document.createElement('div');
 
