@@ -6,16 +6,20 @@ def source_file
 end
 
 def min_file
-  "#{ File.basename source_file, '.js' }.min.js"
+  File.expand_path '../range.min.js', __FILE__
 end
 
 task default: :build
 
 task build: [:js, :docs, :docs]
 
+desc 'Minify js'
 task :js do
   js = File.read source_file
   ugly = Uglifier.compile js
+
+  puts ugly
+  puts min_file
 
   File.open(min_file, 'w+') do |f|
     f.puts ugly
