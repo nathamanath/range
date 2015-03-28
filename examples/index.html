@@ -46,6 +46,8 @@
       for(var i = 0, input; input = inputs[i]; i++) {
         input.addEventListener('change', onChange);
         input.addEventListener('input', onInput);
+
+        input.oninput = function() {console.log('hi');};
       }
     </script>
   </body>

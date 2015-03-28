@@ -32,6 +32,8 @@ Range.new(el);
 * Use modernizr or similar to detect range input support.
 * Apply as above.
 
+Ie < 9 does not support the input event. Bind to `oninput` for ie8 instead.
+
 ### Events stay the same
 
 Bind events to the real input element, and as this is just a facade ontop of an
@@ -45,8 +47,5 @@ input element, your events will fire as before.
 * work out all required events
 * key press support
 * list attr support
-
-* full ie8 support
-* input event in ie8
 * drag and drop not working in ie8
 

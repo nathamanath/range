@@ -63,37 +63,6 @@
       return this._cache[eventName] || this.create(eventName);
     },
 
-    realIeEvent: function(eventName) {
-      var events = [
-        'mousedown',
-        'mouseup',
-
-        'change',
-        'focus',
-        'blur',
-
-        'click',
-        'dblclick',
-        'mousedown',
-        'mousemove',
-        'mouseout',
-        'mouseover',
-        'mouseup'
-      ];
-
-      var match = false;
-      var i = 0;
-      var l = events.length;
-
-      while(i < l && !match) {
-        if(events[i++] === eventName) {
-          match = true;
-        }
-      };
-
-      return match;
-    },
-
     /**
      * Lazily evaluates which fire event method is needed
      * @param el
@@ -112,12 +81,14 @@
         method = function(el, eventName) {
           var onEventName = ['on', eventName].join('');
 
-          if(Event.realIeEvent(eventName)) {
+          if(eventName !== 'input') {
             // Existing ie < 9 event name
+            // TODO: Handle input in ie8 too
             el.fireEvent(onEventName, self.get(eventName));
-          } /*else {
-            // TODO: Polyfill input event for ie <9
-          }*/
+          } else if(el[onEventName]) {
+            // TODO: nicer input event handling for ie8
+            el[onEventName]();
+          }
         };
       }
 
@@ -406,7 +377,6 @@
 
           // Do not fire event on first call (initialisation)
           if(this.oldValue) {
-            // TODO: ie8 dosent like doing this...
             Event.fire(this.input, 'input');
           }
         }
