@@ -310,25 +310,26 @@
 
       /**
        * Get x position of mouse during event
+       * Lazily evaluate which method needed
        *
        * @private
        * @param {object} e - event instance
        */
-      _getMouseX: (function() {
-        var out;
+      _getMouseX: function(e) {
+        var method;
 
         if(typeof window.event === 'undefined') {
-          out = function(e) {
+          method = function(e) {
             return e.pageX;
           };
         } else {
-          out = function() {
+          method = function() {
             return window.event.clientX;
           };
         }
 
-        return out;
-      })(),
+        return (this._getMouseX = method)(e);
+      },
 
       /**
        * Handle input event
