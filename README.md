@@ -3,7 +3,10 @@
 'cause they don't work in ie <= 9, and they are inconsistent in proper browsers.
 
 The aim of this project is to create a range input facade will work, and display
-consistently in ie >= 8 (with events polyfill), and modern browsers.
+consistently in ie >= 9 (with eventListener polyfill), and modern browsers.
+
+Currently ie 8 is not fully supported, however range.js mostly works there too.
+This will be fixed in a future release.
 
 ## Usage
 
@@ -25,9 +28,11 @@ Range.new(el);
 ### As a polyfill
 
 * [polyfill
-  events](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener)
+  event listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener)
 * Use modernizr or similar to detect range input support.
 * Apply as above.
+
+Ie < 9 does not support the input event. Bind to `oninput` for ie8 instead.
 
 ### Events stay the same
 
@@ -38,12 +43,9 @@ input element, your events will fire as before.
 
 ### TODO:
 
-* drag and drop not working in ie8
-* better docs
 * tests
-* refactor quite a bit
 * work out all required events
-* keypress support
+* key press support
 * list attr support
-* ie8 custom events
+* drag and drop not working in ie8
 

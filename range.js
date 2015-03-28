@@ -2,13 +2,102 @@
  * @fileoverview Range input replacement
  * @author NathanG
  * @license MIT
- * @version 0.0.5
+ * @version 0.0.6
  */
 
 (function() {
   'use strict';
 
+  /**
+   * Manages custom events
+   *
+   * @class Event
+   * @private
+   */
+  var Event = {
+    /** custom event cache */
+    _cache: {},
+
+    /**
+     * Lazily evaluates which create method needed
+     * @param eventName
+     */
+    create: function(eventName) {
+      var method;
+      var self = this;
+
+      if (document.createEvent) {
+        method = function(eventName) {
+          var event = document.createEvent('HTMLEvents');
+          event.initEvent(eventName, true, true);
+          return self.cache(eventName, event);
+        }
+      } else {
+        // ie < 9
+        method = function(eventName) {
+          var event = document.createEventObject();
+          event.eventType = eventName;
+          return self.cache(eventName, event);
+        }
+      }
+
+      return (self.create = method)(eventName);
+    },
+
+    /**
+     * @param eventName
+     * @param event
+     */
+    cache: function(eventName, event) {
+      event.eventName = eventName;
+      this._cache[eventName] = event;
+      return event;
+    },
+
+    /**
+     * Get or create custom event of name
+     * @param {string} name
+     * @returns {object} custom event
+     */
+    get: function(eventName) {
+      return this._cache[eventName] || this.create(eventName);
+    },
+
+    /**
+     * Lazily evaluates which fire event method is needed
+     * @param el
+     * @param eventName
+     */
+    fire: function(el, eventName) {
+      var method;
+      var self = this;
+
+      if(document.createEvent) {
+        method = function(el, eventName) {
+          el.dispatchEvent(self.get(eventName));
+        };
+      } else {
+        // ie < 9
+        method = function(el, eventName) {
+          var onEventName = ['on', eventName].join('');
+
+          if(eventName !== 'input') {
+            // Existing ie < 9 event name
+            // TODO: Handle input in ie8 too
+            el.fireEvent(onEventName, self.get(eventName));
+          } else if(el[onEventName]) {
+            // TODO: nicer input event handling for ie8
+            el[onEventName]();
+          }
+        };
+      }
+
+      (self.fire = method)(el, eventName);
+    }
+  };
+
   (function(Range) {
+    // Expose range
     var define = window.define || null;
 
     if(typeof define === 'function' && define.amd) {
@@ -16,53 +105,7 @@
     } else {
       window.Range = Range;
     }
-  })((function(document, window) {
-
-    /**
-     * Helper methods
-     *
-     * @class H
-     * @private
-     */
-    var H = {
-      /** custom event cache */
-      _events: {},
-
-      /**
-       * @param eventName {string} - name of event to be created
-       */
-      createEvent: function(eventName) {
-        var event;
-
-        if (document.createEvent) {
-          event = document.createEvent('HTMLEvents');
-          event.initEvent(eventName, true, true);
-        } else {
-          event = document.createEventObject();
-          event.eventType = eventName;
-        }
-
-        event.eventName = eventName;
-
-        this._events[eventName] = event;
-
-        return event;
-      },
-
-      /**
-       * @param el {object} - dom node to recieve event
-       * @param eventName {string} - name of event to fire
-       */
-      fireEvent: function(el, eventName) {
-        var event = this._events[eventName] || this.createEvent(eventName);
-
-        if (document.createEvent) {
-          el.dispatchEvent(event);
-        } else {
-          el.fireEvent('on' + event.eventType, event);
-        }
-      }
-    };
+  })((function(document, window, Event) {
 
     /**
      * Represents a range input
@@ -264,37 +307,38 @@
         window.addEventListener('mousemove',  onMove);
         window.addEventListener('mouseup', onUp);
 
-        H.fireEvent(this.input, 'mousedown');
+        Event.fire(this.input, 'mousedown');
       },
 
       _onMouseUp: function() {
         this._change();
 
-        H.fireEvent(this.input, 'mouseup');
-        H.fireEvent(this.input, 'click');
+        Event.fire(this.input, 'mouseup');
+        Event.fire(this.input, 'click');
       },
 
       /**
        * Get x position of mouse during event
+       * Lazily evaluate which method needed
        *
        * @private
        * @param {object} e - event instance
        */
-      _getMouseX: (function() {
-        var out;
+      _getMouseX: function(e) {
+        var method;
 
         if(typeof window.event === 'undefined') {
-          out = function(e) {
+          method = function(e) {
             return e.pageX;
           };
         } else {
-          out = function() {
+          method = function() {
             return window.event.clientX;
           };
         }
 
-        return out;
-      })(),
+        return (this._getMouseX = method)(e);
+      },
 
       /**
        * Handle input event
@@ -303,6 +347,7 @@
        */
       _input: function(e) {
         // OPTIMIZE: How not to call this each time?
+        // or cache results.
         this._getDimensions();
 
         var x = this._getMouseX(e);
@@ -317,8 +362,7 @@
       },
 
       /**
-       * Set new value
-       *
+       * @param {number} value
        * @private
        */
       _setValue: function(value) {
@@ -331,8 +375,10 @@
           var percent = ((value - min) / (this.max - min) * 100) || 0;
           this.pointer.style.left = [percent, '%'].join('');
 
-          // TODO: ie8 dosent like doing this...
-          H.fireEvent(this.input, 'input');
+          // Do not fire event on first call (initialisation)
+          if(this.oldValue) {
+            Event.fire(this.input, 'input');
+          }
         }
       },
 
@@ -347,7 +393,7 @@
 
         if(this.oldValue !== newValue) {
           input.value = this.oldValue = this.value = newValue;
-          H.fireEvent(input, 'change');
+          Event.fire(input, 'change');
         }
       },
 
@@ -387,7 +433,7 @@
     };
 
     /**
-     * @param {object} el - input to replace
+     * @param {object} el - input to be replaced
      * @returns {object} Range instance
      */
     Range['new'] = function(el) { // ie8 dont like .new
@@ -412,6 +458,6 @@
 
     return Range;
 
-  })(document, window));
+  })(document, window, Event));
 }).call(window);
 
