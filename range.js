@@ -30,15 +30,14 @@
         method = function(eventName) {
           var event = document.createEvent('HTMLEvents');
           event.initEvent(eventName, true, true);
-          self.cache(eventName, event);
-          return event;
+          return self.cache(eventName, event);
         }
       } else {
+        // ie < 9
         method = function(eventName) {
           var event = document.createEventObject();
           event.eventType = eventName;
-          self.cache(eventName, event);
-          return event;
+          return self.cache(eventName, event);
         }
       }
 
@@ -52,6 +51,7 @@
     cache: function(eventName, event) {
       event.eventName = eventName;
       this._cache[eventName] = event;
+      return event;
     },
 
     /**
@@ -61,6 +61,37 @@
      */
     get: function(eventName) {
       return this._cache[eventName] || this.create(eventName);
+    },
+
+    realIeEvent: function(eventName) {
+      var events = [
+        'mousedown',
+        'mouseup',
+
+        'change',
+        'focus',
+        'blur',
+
+        'click',
+        'dblclick',
+        'mousedown',
+        'mousemove',
+        'mouseout',
+        'mouseover',
+        'mouseup'
+      ];
+
+      var match = false;
+      var i = 0;
+      var l = events.length;
+
+      while(i < l && !match) {
+        if(events[i++] === eventName) {
+          match = true;
+        }
+      };
+
+      return match;
     },
 
     /**
@@ -74,12 +105,19 @@
 
       if(document.createEvent) {
         method = function(el, eventName) {
-          console.log(eventName);
           el.dispatchEvent(self.get(eventName));
         };
       } else {
+        // ie < 9
         method = function(el, eventName) {
-          el.fire('on' + name, self.get(eventName));
+          var onEventName = ['on', eventName].join('');
+
+          if(Event.realIeEvent(eventName)) {
+            // Existing ie < 9 event name
+            el.fireEvent(onEventName, self.get(eventName));
+          } /*else {
+            // TODO: Polyfill input event for ie <9
+          }*/
         };
       }
 
