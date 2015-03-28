@@ -112,11 +112,9 @@
         input.parentNode.insertBefore(this.el, input.nextSibling);
         this._getDimensions();
 
-
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
 
-      // TODO: Tick positioning is wrong
       _generateTicks: function() {
         var el = document.createElement('div');
         var inner = this._generateTicksInner();
@@ -305,7 +303,7 @@
        */
       _input: function(e) {
         // OPTIMIZE: How not to call this each time?
-        // this._getDimensions();
+        this._getDimensions();
 
         var x = this._getMouseX(e);
 
