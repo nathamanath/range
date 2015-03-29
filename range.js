@@ -31,14 +31,14 @@
           var event = document.createEvent('HTMLEvents');
           event.initEvent(eventName, true, true);
           return self.cache(eventName, event);
-        }
+        };
       } else {
         // ie < 9
         method = function(eventName) {
           var event = document.createEventObject();
           event.eventType = eventName;
           return self.cache(eventName, event);
-        }
+        };
       }
 
       return (self.create = method)(eventName);
@@ -83,7 +83,6 @@
 
           if(eventName !== 'input') {
             // Existing ie < 9 event name
-            // TODO: Handle input in ie8 too
             el.fireEvent(onEventName, self.get(eventName));
           } else if(el[onEventName]) {
             // TODO: nicer input event handling for ie8
@@ -136,23 +135,18 @@
       /**
        * Handle list attribute if set
        * @todo Propper list attr support
+       * @private
        */
       _list: function() {
         if(this.input.getAttribute('list')) {
           this._generateTicks();
-
-          var pointerWidth = this.pointerWidth;
-          var hpw = pointerWidth / 2;
-
-          var ticksStyle = this.ticks.style;
-
-          ticksStyle.padding = ['0', hpw, 'px'].join('');
-          ticksStyle.width = '100%';
-          ticksStyle.position = 'absolute';
         }
       },
 
-      /** Render range replacement in place of old input el */
+      /**
+       * Render range replacement in place of old input el
+       * @private
+       */
       _render: function() {
         var input = this.input;
         this.el = this._template();
@@ -165,7 +159,10 @@
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
 
-      /** generate all html required for tick marks */
+      /**
+       * generate all html required for tick marks
+       * @private
+       */
       _generateTicks: function() {
         var el = document.createElement('div');
         var inner = this._generateTicksInner();
@@ -178,11 +175,25 @@
         this.ticks = el;
 
         this.el.appendChild(this.ticks);
+        this._styleTicks(el);
       },
 
       /**
-       * generate tick els wrapper
        * @private
+       * @param ticks - ticks element
+       */
+      _styleTicks: function(ticks) {
+        var hpw = this.pointerWidth / 2;
+        var style = ticks.style;
+
+        style.padding = ['0', hpw, 'px'].join('');
+        style.width = '100%';
+        style.position = 'absolute';
+      },
+
+      /**
+       * @private
+       * @returns inner wrapper element for tick els
        */
       _generateTicksInner: function() {
         var inner = document.createElement('div');
@@ -197,9 +208,9 @@
       },
 
       /**
-       * generate all tick marks
        * @private
        * @param {object} inner - element which contains ticks
+       * @returns el containing all tick marks
        */
       _generateTickEls: function(inner) {
         var steps = (this.max - this.min) / this.step;
@@ -214,9 +225,9 @@
       },
 
       /**
-       * Generate individual tick mark
        * @private
        * @param {integer} offset - tick offset in %
+       * @returns individual tick mark element
        */
       _generateTick: function(offset) {
         var tick = document.createElement('div');
@@ -298,15 +309,15 @@
       },
 
       _bindEvents: function() {
-        var that = this;
-        var addEventListener = this.el.addEventListener;
+        var self = this;
+        var el = this.el;
 
-        addEventListener('mousedown', function(e) {
-          that._onMouseDown(e);
+        el.addEventListener('mousedown', function(e) {
+          self._onMouseDown(e);
         });
 
-        addEventListener('mouseup', function(e) {
-          that._onMouseUp(e);
+        el.addEventListener('mouseup', function(e) {
+          self._onMouseUp(e);
         });
       },
 
@@ -321,19 +332,24 @@
         this._setValue(this.value);
       },
 
+      /**
+       * Handle mousedown event on range replacement
+       * @private
+       * @param e - mousedown event instance
+       */
       _onMouseDown: function(e) {
-        var that = this;
+        var self = this;
         this.oldValue = this.value;
 
         var addEventListener = window.addEventListener;
         var removeEventListener = window.removeEventListener;
 
         var onMove = function(e) {
-          that._input(e);
+          self._input(e);
         };
 
         var onUp = function() {
-          that._change();
+          self._change();
 
           removeEventListener('mousemove',  onMove);
           removeEventListener('mouseup', onUp);
@@ -347,6 +363,10 @@
         Event.fire(this.input, 'mousedown');
       },
 
+      /**
+       * Handle mouseup event on range replacement
+       * @private
+       */
       _onMouseUp: function() {
         this._change();
 
@@ -378,9 +398,9 @@
       },
 
       /**
-       * Handle input event
-       *
+       * Handle input event for range replacement
        * @private
+       * @param e - event instance
        */
       _input: function(e) {
         // OPTIMIZE: How not to call this each time?
@@ -399,8 +419,8 @@
       },
 
       /**
-       * @param {number} value
        * @private
+       * @param {number} value
        */
       _setValue: function(value) {
         // set pointer position only when value changes
@@ -421,7 +441,6 @@
 
       /**
        * Handle change of value if changed
-       *
        * @private
        */
       _change: function() {
