@@ -2,7 +2,7 @@
  * @fileoverview Range input replacement
  * @author NathanG
  * @license MIT
- * @version 0.0.6
+ * @version 0.0.7
  */
 
 (function() {
@@ -490,11 +490,12 @@
      * @param {object} el - input to be replaced
      * @returns {object} Range instance
      */
-    Range['new'] = function(el) { // ie8 dont like .new
+    Range.create = function(el) {
       return new Range(el).init();
     };
 
     /**
+     * @todo take dom node / nodelist / selector / default to all input[type=range]
      * @param {string} [selector] - css selector for ranges to replace
      * @returns {array} Range instances
      */
@@ -504,15 +505,14 @@
       var ranges = [];
 
       for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(this['new'](els[i]));
+        ranges.push(Range.create(els[i]));
       }
 
       return ranges;
     };
 
     return {
-      'init': Range.init,
-      'new': Range['new']
+      'init': Range.init
     };
 
   })(document, window, Event));
