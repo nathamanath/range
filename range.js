@@ -510,7 +510,10 @@
       return ranges;
     };
 
-    return Range;
+    return {
+      'init': Range.init,
+      'new': Range['new']
+    };
 
   })(document, window, Event));
 }).call(window);
