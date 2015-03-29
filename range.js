@@ -325,7 +325,7 @@
        * update element dimensions, reset value and pointer position
        * to that of this.input
        */
-      update: function() {
+      'update': function() {
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
