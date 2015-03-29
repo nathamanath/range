@@ -133,6 +133,10 @@
         return this;
       },
 
+      /**
+       * Handle list attribute if set
+       * @todo Propper list attr support
+       */
       _list: function() {
         if(this.input.getAttribute('list')) {
           this._generateTicks();
@@ -140,12 +144,15 @@
           var pointerWidth = this.pointerWidth;
           var hpw = pointerWidth / 2;
 
-          this.ticks.style.padding = ['0', hpw, 'px'].join('');
-          this.ticks.style.width = '100%';
-          this.ticks.style.position = 'absolute';
+          var ticksStyle = this.ticks.style;
+
+          ticksStyle.padding = ['0', hpw, 'px'].join('');
+          ticksStyle.width = '100%';
+          ticksStyle.position = 'absolute';
         }
       },
 
+      /** Render range replacement in place of old input el */
       _render: function() {
         var input = this.input;
         this.el = this._template();
@@ -158,6 +165,7 @@
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
 
+      /** generate all html required for tick marks */
       _generateTicks: function() {
         var el = document.createElement('div');
         var inner = this._generateTicksInner();
@@ -172,16 +180,27 @@
         this.el.appendChild(this.ticks);
       },
 
+      /**
+       * generate tick els wrapper
+       * @private
+       */
       _generateTicksInner: function() {
         var inner = document.createElement('div');
+        var style = inner.style;
 
         inner.className = 'ticks-inner';
-        inner.style.width = '100%';
-        inner.style.position = 'relative';
+
+        style.width = '100%';
+        style.position = 'relative';
 
         return inner;
       },
 
+      /**
+       * generate all tick marks
+       * @private
+       * @param {object} inner - element which contains ticks
+       */
       _generateTickEls: function(inner) {
         var steps = (this.max - this.min) / this.step;
         var stepPercent = 100 / steps;
@@ -195,6 +214,7 @@
       },
 
       /**
+       * Generate individual tick mark
        * @private
        * @param {integer} offset - tick offset in %
        */
@@ -202,12 +222,17 @@
         var tick = document.createElement('div');
 
         tick.className = 'tick';
+
         tick.style.position = 'absolute';
         tick.style.left = [offset, '%'].join('');
 
         return tick;
       },
 
+      /**
+       * Get input facade offset and dimensions
+       * @private
+       */
       _getDimensions: function() {
         this.pointerWidth = this.pointer.offsetWidth;
         var rect = this.el.getBoundingClientRect();
@@ -216,8 +241,11 @@
         this.xMax = rect.right - this.xMin;
       },
 
+      /**
+       * @private
+       * @returns {object} All input facade html
+       */
       _template: function() {
-
         var el = this._rangeEl();
         this.track = this._trackEl();
         this.pointer = this._pointerEl();
@@ -228,20 +256,26 @@
         return el;
       },
 
+      /**
+       * @private
+       * @returns Range replacement wrapper element
+       */
       _rangeEl: function() {
         var  el = document.createElement('div');
         var width = this.pointerWidth || 0;
+        var style = el.style;
 
         el.className = 'range-replacement';
-        el.style.position = 'relative';
-        el.style.paddingRight = [width, 'px'].join('');
+
+        style.position = 'relative';
+        style.paddingRight = [width, 'px'].join('');
 
         return el;
       },
 
       /**
-       * generates track html
        * @private
+       * @returns Generated track el
        */
       _trackEl: function() {
         var track = document.createElement('div');
@@ -251,8 +285,8 @@
       },
 
       /**
-       * generates pointer html
        * @private
+       * @returns Generated pointer el
        */
       _pointerEl: function() {
         var pointer = document.createElement('div');
@@ -265,18 +299,19 @@
 
       _bindEvents: function() {
         var that = this;
+        var addEventListener = this.el.addEventListener;
 
-        this.el.addEventListener('mousedown', function(e) {
+        addEventListener('mousedown', function(e) {
           that._onMouseDown(e);
         });
 
-        this.el.addEventListener('mouseup', function(e) {
+        addEventListener('mouseup', function(e) {
           that._onMouseUp(e);
         });
       },
 
       /**
-       * update element dimensions, and reset value and pointer position
+       * update element dimensions, reset value and pointer position
        * to that of this.input
        */
       update: function() {
@@ -287,11 +322,11 @@
       },
 
       _onMouseDown: function(e) {
+        var that = this;
         this.oldValue = this.value;
 
-        this._input(e);
-
-        var that = this;
+        var addEventListener = window.addEventListener;
+        var removeEventListener = window.removeEventListener;
 
         var onMove = function(e) {
           that._input(e);
@@ -300,12 +335,14 @@
         var onUp = function() {
           that._change();
 
-          window.removeEventListener('mousemove',  onMove);
-          window.removeEventListener('mouseup', onUp);
+          removeEventListener('mousemove',  onMove);
+          removeEventListener('mouseup', onUp);
         };
 
-        window.addEventListener('mousemove',  onMove);
-        window.addEventListener('mouseup', onUp);
+        this._input(e);
+
+        addEventListener('mousemove',  onMove);
+        addEventListener('mouseup', onUp);
 
         Event.fire(this.input, 'mousedown');
       },
@@ -404,13 +441,11 @@
        * @private
        */
       _roundAndLimit: function(n) {
-
         // count # of decimals in this.step
         var decimals = (this.step + '').split('.')[1];
         var places = (decimals) ? decimals.length : 0;
 
-        var rounded = Math.round(n / this.step) * this.step;
-        rounded = rounded.toFixed(places);
+        var rounded = (Math.round(n / this.step) * this.step).toFixed(places);
 
         return Math.min(Math.max(rounded, this.min), this.max);
       },
