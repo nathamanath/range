@@ -42,6 +42,10 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 
 ## Development
 
+### Building
+* set $CLOSURE\_PATH environment variable to closure compiler jar path
+* `rake build`
+
 ### TODO:
 
 * tests
