@@ -2,9 +2,8 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license MIT
+ * @license Range.js v0.0.7 | https://github.com/nathamanath/range/license
  * @version 0.0.7
- * @todo focus / blur events, then keypresses
  */
 
 
