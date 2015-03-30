@@ -107,6 +107,7 @@
     } else {
       window.Range = Range;
     }
+
   })((function(document, window, Event) {
 
     /**
@@ -322,6 +323,27 @@
         el.addEventListener('mousedown', function(e) {
           var events = ['mousedown', 'mousemove', 'mouseup'];
           self._dragStart(e, events, self._getMouseX);
+
+          if(!self.hasFocus) {
+            self.hasFocus = true;
+            Event.fire(self.input, 'focus');
+
+            var blur;
+
+            window.addEventListener('mousedown', blur = function(e) {
+              var els = self.el.children;
+
+              [].push.call(els, this.el);
+              // [].push.call(els, this.input);
+
+              if([].indexOf.call(els, e.target) < 0) {
+                self.hasFocus = false;
+                window.removeEventListener('mousedown', blur);
+
+                Event.fire(self.input, 'blur');
+              }
+            });
+          }
         });
 
         el.addEventListener('touchstart', function(e) {
@@ -336,17 +358,21 @@
         el.addEventListener('touchend', function() {
           self._dragEnd('touchend');
         });
+
       },
 
       /**
        * update element dimensions, reset value and pointer position
        * to that of this.input
+       * @returns Range instance
        */
       'update': function() {
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
         this._setValue(this.value);
+
+        return this;
       },
 
       /**
@@ -387,7 +413,7 @@
       _dragEnd: function(endEventName) {
         this._change();
         Event.fire(this.input, endEventName);
-        Event.fire(this.input, 'click');
+        // Event.fire(this.input, 'click');
       },
 
       /**
@@ -413,6 +439,10 @@
         return (this._getMouseX = method)(e);
       },
 
+      /**
+       * Get mouse x position during touch event
+       * @private
+       */
       _getTouchX: function(e) {
         return e.changedTouches[0].clientX;
       },

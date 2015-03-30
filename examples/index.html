@@ -11,6 +11,8 @@
     default
     <input class="range" type="range" list="something" />
     <br />
+    <br />
+    <input type="range" list="something" />
 
     value=2 min=0 max=4 step=1
     <input class="range" max="4" min="0" step="1" type="range" value="2" list="list" />
@@ -31,17 +33,15 @@
 
       var inputs = document.querySelectorAll('input');
 
-      var onChange = function() {
-        console.log('change! - ' + this.value);
-      };
-
-      var onInput = function() {
-        console.log('input! - ' + this.value);
+      var onEvent = function(e) {
+        console.log(e.type + '! - ' + this.value);
       };
 
       for(var i = 0, input; input = inputs[i]; i++) {
-        input.addEventListener('change', onChange);
-        input.addEventListener('input', onInput);
+        input.addEventListener('change', onEvent);
+        input.addEventListener('input', onEvent);
+        input.addEventListener('focus', onEvent);
+        input.addEventListener('blur', onEvent);
 
         /* input.oninput = function() {console.log('hi');}; */
       }
