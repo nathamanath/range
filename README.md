@@ -22,7 +22,7 @@ Range.init();
 
 ```javascript
 var el = document.getElementById('range');
-Range.new(el);
+Range.create(el);
 ```
 
 ### As a polyfill
@@ -32,12 +32,13 @@ Range.new(el);
 * Use modernizr or similar to detect range input support.
 * Apply as above.
 
-Ie < 9 does not support the input event. Bind to `oninput` for ie8 instead.
+Ie < 9 does not support the input event. Bind to `element.oninput` for ie8 instead.
 
 ### Events stay the same
 
 Bind events to the real input element, and as this is just a facade ontop of an
-input element, your events will fire as before.
+input element, your events will fire as before. (Currently change, input
+mousedown, mouseup, mosemove, and click are implemented. The others are coming soon).
 
 ## Development
 
