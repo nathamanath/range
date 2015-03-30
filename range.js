@@ -323,9 +323,18 @@
           self._onMouseDown(e);
         });
 
+        el.addEventListener('touchstart', function(e) {
+          self._onTouchStart(e);
+        });
+
+
         el.addEventListener('mouseup', function(e) {
           self._onMouseUp(e);
         });
+
+        // el.addEventListener('touchend', function(e) {
+        //   self._onMouseUp(e);
+        // });
       },
 
       /**
@@ -345,29 +354,48 @@
        * @param e - mousedown event instance
        */
       _onMouseDown: function(e) {
+        var events = ['mousedown', 'mousemove', 'mouseup'];
+        this._dragStart(e, events, this._getMouseX);
+      },
+
+      _onTouchStart: function(e) {
+        var events = ['touchstart', 'touchmove', 'touchend'];
+        this._dragStart(e, events, this._getTouchX);
+      },
+
+      _onMove: function() {},
+
+      _onUp: function() {},
+
+      /**
+       * Handle pointer drag for either touch or mouse
+       * @private
+       * @param {object} e - move event
+       * @param {array} eventNames - names of required events
+       * @param {function} getX - method which returns x position of event
+       */
+      _dragStart: function(e, events, getX) {
         var self = this;
-        this.oldValue = this.value;
 
-        var addEventListener = window.addEventListener;
-        var removeEventListener = window.removeEventListener;
+        var onMove, onUp;
+        var moveEvent = events[1];
+        var endEvent = events[2];
 
-        var onMove = function(e) {
-          self._input(e);
-        };
+        self.oldValue = this.value;
+        self._input(getX.call(self, e));
 
-        var onUp = function() {
+        window.addEventListener(moveEvent, onMove = function(e) {
+          self._input(getX.call(self, e));
+        });
+
+        window.addEventListener(endEvent, onUp = function() {
           self._change();
 
-          removeEventListener('mousemove',  onMove);
-          removeEventListener('mouseup', onUp);
-        };
+          window.removeEventListener(moveEvent, onMove);
+          window.removeEventListener(endEvent, onUp);
+        });
 
-        this._input(e);
-
-        addEventListener('mousemove',  onMove);
-        addEventListener('mouseup', onUp);
-
-        Event.fire(this.input, 'mousedown');
+        Event.fire(this.input, events[0]);
       },
 
       /**
@@ -407,14 +435,12 @@
       /**
        * Handle input event for range replacement
        * @private
-       * @param e - event instance
+       * @param x - input event x position
        */
-      _input: function(e) {
+      _input: function(x) {
         // OPTIMIZE: How not to call this each time?
         // or cache results.
         this._getDimensions();
-
-        var x = this._getMouseX(e);
 
         var offsetX = x - this.xMin;
         var from = [0, this.xMax];
@@ -502,7 +528,8 @@
     };
 
     /**
-     * @todo take dom node / nodelist / selector / default to all input[type=range]
+     * @todo take dom node / nodelist / selector /
+     * default to all input[type=range]
      * @param {string} [selector] - css selector for ranges to replace
      * @returns {array} Range instances
      */
