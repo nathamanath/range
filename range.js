@@ -320,21 +320,22 @@
         var el = this.el;
 
         el.addEventListener('mousedown', function(e) {
-          self._onMouseDown(e);
+          var events = ['mousedown', 'mousemove', 'mouseup'];
+          this._dragStart(e, events, this._getMouseX);
         });
 
         el.addEventListener('touchstart', function(e) {
-          self._onTouchStart(e);
+          var events = ['touchstart', 'touchmove', 'touchend'];
+          this._dragStart(e, events, this._getTouchX);
         });
 
-
-        el.addEventListener('mouseup', function(e) {
-          self._onMouseUp(e);
+        el.addEventListener('mouseup', function() {
+          self._dragEnd('mouseup');
         });
 
-        // el.addEventListener('touchend', function(e) {
-        //   self._onMouseUp(e);
-        // });
+        el.addEventListener('touchend', function() {
+          self._dragEnd('touchend');
+        });
       },
 
       /**
@@ -349,25 +350,6 @@
       },
 
       /**
-       * Handle mousedown event on range replacement
-       * @private
-       * @param e - mousedown event instance
-       */
-      _onMouseDown: function(e) {
-        var events = ['mousedown', 'mousemove', 'mouseup'];
-        this._dragStart(e, events, this._getMouseX);
-      },
-
-      _onTouchStart: function(e) {
-        var events = ['touchstart', 'touchmove', 'touchend'];
-        this._dragStart(e, events, this._getTouchX);
-      },
-
-      _onMove: function() {},
-
-      _onUp: function() {},
-
-      /**
        * Handle pointer drag for either touch or mouse
        * @private
        * @param {object} e - move event
@@ -376,12 +358,11 @@
        */
       _dragStart: function(e, events, getX) {
         var self = this;
-
         var onMove, onUp;
         var moveEvent = events[1];
         var endEvent = events[2];
 
-        self.oldValue = this.value;
+        self.oldValue = self.value;
         self._input(getX.call(self, e));
 
         window.addEventListener(moveEvent, onMove = function(e) {
@@ -395,17 +376,17 @@
           window.removeEventListener(endEvent, onUp);
         });
 
-        Event.fire(this.input, events[0]);
+        Event.fire(self.input, events[0]);
       },
 
       /**
-       * Handle mouseup event on range replacement
+       * Handle end of pointer drag (touch or mouse)
        * @private
+       * @param {string} endEventName
        */
-      _onMouseUp: function() {
+      _onDragEnd: function(endEventName) {
         this._change();
-
-        Event.fire(this.input, 'mouseup');
+        Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
       },
 
@@ -430,6 +411,10 @@
         }
 
         return (this._getMouseX = method)(e);
+      },
+
+      _getTouchX: function(e) {
+        return e.changedTouches[0].clientX;
       },
 
       /**
