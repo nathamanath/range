@@ -114,10 +114,14 @@
      *
      * @class Range
      * @param {object} el - range input to recieve facade
+     * @param {object} args
+     * @param {string} args.pointerWidth - Set value for pointer width.
+     * Currently needed if range is initialy rendered with display: none
      */
-    var Range = function(el) {
+    var Range = function(el, args) {
       this.input = el;
 
+      this.args = args || {};
       this.value = parseFloat(el.value);
       this.max = parseFloat(el.getAttribute('max')) || 100;
       this.min = parseFloat(el.getAttribute('min')) || 0;
@@ -158,6 +162,11 @@
 
         input.parentNode.insertBefore(this.el, input.nextSibling);
         this._getDimensions();
+        this._getPointerWidth();
+
+        if(!this.pointerWidth) {
+          this._getPointerWidth()
+        }
 
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
@@ -248,11 +257,14 @@
        * @private
        */
       _getDimensions: function() {
-        this.pointerWidth = this.pointer.offsetWidth;
         var rect = this.el.getBoundingClientRect();
 
         this.xMin = rect.left;
         this.xMax = rect.right - this.xMin;
+      },
+
+      _getPointerWidth: function() {
+        this.pointerWidth = this.pointer.offsetWidth;
       },
 
       /**
@@ -308,9 +320,16 @@
        */
       _pointerEl: function() {
         var pointer = document.createElement('div');
+        var style = pointer.style;
 
         pointer.className = 'point';
-        pointer.style.position = 'relative';
+        style.position = 'relative';
+
+        var pointerWidth = this.args.pointerWidth;
+
+        if(!!pointerWidth) {
+          style.width = pointerWidth;
+        }
 
         return pointer;
       },
@@ -508,8 +527,8 @@
      * @param {object} el - input to be replaced
      * @returns {object} Range instance
      */
-    Range.create = function(el) {
-      return new Range(el).init();
+    Range.create = function(el, args) {
+      return new Range(el, args).init();
     };
 
     /**
@@ -518,13 +537,13 @@
      * @param {string} [selector] - css selector for ranges to replace
      * @returns {array} Range instances
      */
-    Range.init = function(selector) {
+    Range.init = function(selector, args) {
       selector = selector || 'input[type=range]';
       var els = document.querySelectorAll(selector);
       var ranges = [];
 
       for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(Range.create(els[i]));
+        ranges.push(Range.create(els[i], args));
       }
 
       return ranges;
