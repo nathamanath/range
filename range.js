@@ -321,12 +321,12 @@
 
         el.addEventListener('mousedown', function(e) {
           var events = ['mousedown', 'mousemove', 'mouseup'];
-          this._dragStart(e, events, this._getMouseX);
+          self._dragStart(e, events, self._getMouseX);
         });
 
         el.addEventListener('touchstart', function(e) {
           var events = ['touchstart', 'touchmove', 'touchend'];
-          this._dragStart(e, events, this._getTouchX);
+          self._dragStart(e, events, self._getTouchX);
         });
 
         el.addEventListener('mouseup', function() {
@@ -384,7 +384,7 @@
        * @private
        * @param {string} endEventName
        */
-      _onDragEnd: function(endEventName) {
+      _dragEnd: function(endEventName) {
         this._change();
         Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
