@@ -1,5 +1,5 @@
 /**
- * Range input facade
+ * range.js - Range input facade
  *
  * @author NathanG
  * @license MIT
