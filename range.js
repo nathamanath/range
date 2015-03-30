@@ -267,6 +267,10 @@
         el.appendChild(this.track);
         this.track.appendChild(this.pointer);
 
+        el.addEventListener('selectstart', function(e) {
+          e.preventDefault();
+        });
+
         return el;
       },
 
