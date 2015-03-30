@@ -1,9 +1,12 @@
 /**
- * @fileoverview Range input replacement
+ * range.js - Range input facade
+ *
  * @author NathanG
  * @license MIT
  * @version 0.0.7
+ * @todo focus / blur events, then keypresses
  */
+
 
 (function() {
   'use strict';
@@ -512,7 +515,8 @@
     };
 
     return {
-      'init': Range.init
+      'init': Range.init,
+      'create': Range.create
     };
 
   })(document, window, Event));
