@@ -163,9 +163,7 @@
         this._getDimensions();
         this._getPointerWidth();
 
-        if(!this.pointerWidth) {
-          this._getPointerWidth()
-        }
+        this._getPointerWidth()
 
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
@@ -263,7 +261,7 @@
       },
 
       _getPointerWidth: function() {
-        this.pointerWidth = this.pointer.offsetWidth;
+        this.pointerWidth = this.args['pointerWidth'] || this.pointer.offsetWidth;
       },
 
       /**
@@ -327,7 +325,7 @@
         var pointerWidth = this.args['pointerWidth'];
 
         if(!!pointerWidth) {
-          style.width = pointerWidth;
+          style.width = pointerWidth + 'px';
         }
 
         return pointer;
@@ -394,6 +392,8 @@
           window.removeEventListener(endEvent, onUp);
         });
 
+        window.addEventListener('selectstart', this._preventSelection);
+
         Event.fire(self.input, events[0]);
       },
 
@@ -404,8 +404,19 @@
        */
       _dragEnd: function(endEventName) {
         this._change();
+        window.removeEventListener('selectstart', this._preventSelection);
         Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
+      },
+
+      /**
+       * Stop user from selecting ranges when dragging
+       * @private
+       * @todo Firefox support
+       */
+      _preventSelection: function(e) {
+        e.preventDefault();
+        return false;
       },
 
       /**
