@@ -340,6 +340,7 @@
           var events = ['mousedown', 'mousemove', 'mouseup'];
           self._dragStart(e, events, self._getMouseX);
 
+          // Focus / blur events
           if(!self.hasFocus) {
             self.hasFocus = true;
             Event.fire(self.input, 'focus');
@@ -347,12 +348,11 @@
             var blur;
 
             window.addEventListener('mousedown', blur = function(e) {
-              var els = self.el.children;
+              var els = [].slice.call(el.children);
 
-              [].push.call(els, this.el);
-              // [].push.call(els, this.input);
-
-              if([].indexOf.call(els, e.target) < 0) {
+              els.push(self.el, self.input);
+              // if not clicking on this.el / children
+              if(els.indexOf(e.target) < 0) {
                 self.hasFocus = false;
                 window.removeEventListener('mousedown', blur);
 
