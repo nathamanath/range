@@ -164,7 +164,7 @@
         this._getDimensions();
         this._getPointerWidth();
 
-        this._getPointerWidth()
+        this._getPointerWidth();
 
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
@@ -262,7 +262,8 @@
       },
 
       _getPointerWidth: function() {
-        this.pointerWidth = this.args['pointerWidth'] || this.pointer.offsetWidth;
+        this.pointerWidth = this.args['pointerWidth'] ||
+          this.pointer.offsetWidth;
       },
 
       /**
@@ -348,9 +349,28 @@
             var blur;
 
             window.addEventListener('mousedown', blur = function(e) {
-              var els = [].slice.call(el.children);
 
-              els.push(self.el, self.input);
+              var allDescendants = function(element) {
+                var els = [];
+
+                var getChildren = function(el) {
+                  var children = [].slice.call(el.children);
+
+                  for(var i = 0, l = children.length; i < l; i++) {
+                    els.push(children[i]);
+                    getChildren(children[i]);
+                  }
+                };
+
+                getChildren(element);
+
+                return els;
+              };
+
+              var els = allDescendants(el);
+
+              els.push(el, self.input);
+
               // if not clicking on this.el / children
               if(els.indexOf(e.target) < 0) {
                 self.hasFocus = false;
@@ -399,10 +419,10 @@
        * @param {function} getX - method which returns x position of event
        */
       _dragStart: function(e, events, getX) {
-        var self = this;
-        var onMove, onUp;
-        var moveEvent = events[1];
-        var endEvent = events[2];
+        var self = this,
+            onMove, onUp,
+            moveEvent = events[1],
+            endEvent = events[2];
 
         self.oldValue = self.value;
         self._input(getX.call(self, e));
