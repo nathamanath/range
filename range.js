@@ -324,7 +324,7 @@
         pointer.className = 'point';
         style.position = 'relative';
 
-        var pointerWidth = this.args.pointerWidth;
+        var pointerWidth = this.args[pointerWidth];
 
         if(!!pointerWidth) {
           style.width = pointerWidth;
