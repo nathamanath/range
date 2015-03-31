@@ -381,18 +381,23 @@
         self.oldValue = self.value;
         self._input(getX.call(self, e));
 
+        var preventSelection = function(e) {
+          e.preventDefault();
+          return false;
+        };
+
         window.addEventListener(moveEvent, onMove = function(e) {
           self._input(getX.call(self, e));
         });
 
-        window.addEventListener('selectstart', this._preventSelection);
+        window.addEventListener('selectstart', preventSelection);
 
         window.addEventListener(endEvent, onUp = function() {
           self._change();
 
           window.removeEventListener(moveEvent, onMove);
           window.removeEventListener(endEvent, onUp);
-          window.removeEventListener('selectstart', self._preventSelection);
+          window.removeEventListener('selectstart', preventSelection);
         });
 
         Event.fire(self.input, events[0]);
@@ -408,16 +413,6 @@
 
         Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
-      },
-
-      /**
-       * Stop user from selecting ranges when dragging
-       * @private
-       * @todo Firefox support
-       */
-      _preventSelection: function(e) {
-        e.preventDefault();
-        return false;
       },
 
       /**
