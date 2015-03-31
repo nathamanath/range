@@ -43,14 +43,23 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 ## Development
 
 ### Building
-* set $CLOSURE\_PATH environment variable to closure compiler jar path
+* jsdoc is required to build docs.
+* set $CLOSURE_PATH environment variable to closure compiler jar path
 * `rake build`
 
 ### TODO:
 
+* tidy up
 * tests
 * work out all required events
 * key press support
 * list attr support
-* drag and drop not working in ie8
+* host docs
+
+#### Known issues
+
+* Drag and drop not working in ie8.
+* When I focus on one range, and then I focus on another, focus and blur events
+  are in wrong order.
+* preventSelection method does not work in firefox.
 

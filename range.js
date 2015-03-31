@@ -458,7 +458,7 @@
         this._change();
 
         Event.fire(this.input, endEventName);
-        // Event.fire(this.input, 'click');
+        Event.fire(this.input, 'click');
       },
 
       /**
