@@ -385,14 +385,15 @@
           self._input(getX.call(self, e));
         });
 
+        window.addEventListener('selectstart', this._preventSelection);
+
         window.addEventListener(endEvent, onUp = function() {
           self._change();
 
           window.removeEventListener(moveEvent, onMove);
           window.removeEventListener(endEvent, onUp);
+          window.removeEventListener('selectstart', self._preventSelection);
         });
-
-        window.addEventListener('selectstart', this._preventSelection);
 
         Event.fire(self.input, events[0]);
       },
@@ -404,7 +405,7 @@
        */
       _dragEnd: function(endEventName) {
         this._change();
-        window.removeEventListener('selectstart', this._preventSelection);
+
         Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
       },
