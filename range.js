@@ -2,9 +2,8 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license MIT
  * @version 0.0.7
- * @todo focus / blur events, then keypresses
+ * @license Range.js v0.0.7 | https://github.com/nathamanath/range/license
  */
 
 
@@ -115,10 +114,14 @@
      *
      * @class Range
      * @param {object} el - range input to recieve facade
+     * @param {object} args
+     * @param {string} args.pointerWidth - Set value for pointer width.
+     * Currently needed if range is initialy rendered with display: none
      */
-    var Range = function(el) {
+    var Range = function(el, args) {
       this.input = el;
 
+      this.args = args || {};
       this.value = parseFloat(el.value);
       this.max = parseFloat(el.getAttribute('max')) || 100;
       this.min = parseFloat(el.getAttribute('min')) || 0;
@@ -159,6 +162,9 @@
 
         input.parentNode.insertBefore(this.el, input.nextSibling);
         this._getDimensions();
+        this._getPointerWidth();
+
+        this._getPointerWidth()
 
         this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
       },
@@ -249,11 +255,14 @@
        * @private
        */
       _getDimensions: function() {
-        this.pointerWidth = this.pointer.offsetWidth;
         var rect = this.el.getBoundingClientRect();
 
         this.xMin = rect.left;
         this.xMax = rect.right - this.xMin;
+      },
+
+      _getPointerWidth: function() {
+        this.pointerWidth = this.args['pointerWidth'] || this.pointer.offsetWidth;
       },
 
       /**
@@ -309,9 +318,16 @@
        */
       _pointerEl: function() {
         var pointer = document.createElement('div');
+        var style = pointer.style;
 
         pointer.className = 'point';
-        pointer.style.position = 'relative';
+        style.position = 'relative';
+
+        var pointerWidth = this.args['pointerWidth'];
+
+        if(!!pointerWidth) {
+          style.width = pointerWidth + 'px';
+        }
 
         return pointer;
       },
@@ -391,15 +407,23 @@
         self.oldValue = self.value;
         self._input(getX.call(self, e));
 
+        var preventSelection = function(e) {
+          e.preventDefault();
+          return false;
+        };
+
         window.addEventListener(moveEvent, onMove = function(e) {
           self._input(getX.call(self, e));
         });
+
+        window.addEventListener('selectstart', preventSelection);
 
         window.addEventListener(endEvent, onUp = function() {
           self._change();
 
           window.removeEventListener(moveEvent, onMove);
           window.removeEventListener(endEvent, onUp);
+          window.removeEventListener('selectstart', preventSelection);
         });
 
         Event.fire(self.input, events[0]);
@@ -412,6 +436,7 @@
        */
       _dragEnd: function(endEventName) {
         this._change();
+
         Event.fire(this.input, endEventName);
         // Event.fire(this.input, 'click');
       },
@@ -538,8 +563,8 @@
      * @param {object} el - input to be replaced
      * @returns {object} Range instance
      */
-    Range.create = function(el) {
-      return new Range(el).init();
+    Range.create = function(el, args) {
+      return new Range(el, args).init();
     };
 
     /**
@@ -548,13 +573,13 @@
      * @param {string} [selector] - css selector for ranges to replace
      * @returns {array} Range instances
      */
-    Range.init = function(selector) {
+    Range.init = function(selector, args) {
       selector = selector || 'input[type=range]';
       var els = document.querySelectorAll(selector);
       var ranges = [];
 
       for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(Range.create(els[i]));
+        ranges.push(Range.create(els[i], args));
       }
 
       return ranges;

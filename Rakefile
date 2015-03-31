@@ -15,12 +15,7 @@ task build: [:js, :docs, :docs]
 
 desc 'Minify js'
 task :js do
-  js = File.read source_file
-  ugly = Uglifier.compile js
-
-  File.open(min_file, 'w+') do |f|
-    f.puts ugly
-  end
+  `java -jar $CLOSURE_PATH --js range.js --compilation_level ADVANCED_OPTIMIZATIONS > range.min.js`
 end
 
 task :docs do
