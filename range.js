@@ -333,6 +333,10 @@
         return pointer;
       },
 
+      /**
+       * Binds events for range replacement to work
+       * @private
+       */
       _bindEvents: function() {
         var self = this;
         var el = this.el;
@@ -346,39 +350,11 @@
             self.hasFocus = true;
             Event.fire(self.input, 'focus');
 
-            var blur;
+            var blur = function(e) {
+              self._onBlur(e, blur);
+            };
 
-            window.addEventListener('mousedown', blur = function(e) {
-
-              var allDescendants = function(element) {
-                var els = [];
-
-                var getChildren = function(el) {
-                  var children = [].slice.call(el.children);
-
-                  for(var i = 0, l = children.length; i < l; i++) {
-                    els.push(children[i]);
-                    getChildren(children[i]);
-                  }
-                };
-
-                getChildren(element);
-
-                return els;
-              };
-
-              var els = allDescendants(el);
-
-              els.push(el, self.input);
-
-              // if not clicking on this.el / children
-              if(els.indexOf(e.target) < 0) {
-                self.hasFocus = false;
-                window.removeEventListener('mousedown', blur);
-
-                Event.fire(self.input, 'blur');
-              }
-            });
+            window.addEventListener('mousedown', blur);
           }
         });
 
@@ -395,6 +371,34 @@
           self._dragEnd('touchend');
         });
 
+      },
+
+      /**
+       * Handle blur event on range replacement
+       * @private
+       * @param e - event
+       * @param blur - blur function reference needed to unbind listener
+       */
+      _onBlur: function(e, blur) {
+        var input = this.input,
+            el = this.el,
+            // All els which wont cause blur if clicked
+            _els = el.querySelectorAll('*'),
+            els = [];
+
+        for(var i = 0, l = _els.length; i < l; i++) {
+          els.push(_els[i]);
+        }
+
+        els.push(el, input);
+
+        // if not clicking on this.el / descendants
+        if(els.indexOf(e.target) < 0) {
+          this.hasFocus = false;
+          window.removeEventListener('mousedown', blur);
+
+          Event.fire(input, 'blur');
+        }
       },
 
       /**
@@ -487,6 +491,7 @@
       /**
        * Get mouse x position during touch event
        * @private
+       * @param e - touch event
        */
       _getTouchX: function(e) {
         return e.changedTouches[0].clientX;
@@ -512,6 +517,7 @@
       },
 
       /**
+       * Sets value of both this.input and range replacement
        * @private
        * @param {number} value
        */
@@ -551,6 +557,7 @@
        * Also ensure same decimal places as step for ie <= 9's sake. >:0
        *
        * @private
+       * @param {number} n
        */
       _roundAndLimit: function(n) {
         // count # of decimals in this.step
@@ -563,6 +570,8 @@
       },
 
       /**
+       * Scale a number
+       *
        * @private
        * @param {number} value - number to be rounded
        * @param {array} rangeFrom - Source range: [srcLow, srcHigh]
