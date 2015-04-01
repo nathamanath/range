@@ -345,17 +345,7 @@
           var events = ['mousedown', 'mousemove', 'mouseup'];
           self._dragStart(e, events, self._getMouseX);
 
-          // Focus / blur events
-          if(!self.hasFocus) {
-            self.hasFocus = true;
-            Event.fire(self.input, 'focus');
-
-            var blur = function(e) {
-              self._onBlur(e, blur);
-            };
-
-            window.addEventListener('mousedown', blur);
-          }
+          self._focus();
         });
 
         el.addEventListener('touchstart', function(e) {
@@ -374,12 +364,59 @@
       },
 
       /**
+       * Handle focus
+       * @private
+       */
+      _focus: function() {
+        var self = this;
+
+        if(!self.hasFocus) {
+          self.hasFocus = true;
+          Event.fire(self.input, 'focus');
+
+          var keydown = function(e) {
+            self._keydown(e)
+          };
+
+          var blur = function(e) {
+            self._blur(e, blur, keydown);
+          };
+
+          window.addEventListener('keydown', keydown);
+          window.addEventListener('mousedown', blur);
+        }
+      },
+
+      /**
+       * Called when focused on range replacement and keydown
+       * @private
+       * @param e - keydown event
+       */
+      _keydown: function(e) {
+        // TODO: cache which is in use
+        var code = e.keyCode || e.charCode;
+
+        // left or down arrow
+        if(code === 40 || code === 37) {
+          e.preventDefault();
+          this._setValue(this.value - this.step);
+        }
+
+        // right or up arrow
+        if(code === 38 || code === 39) {
+          e.preventDefault();
+          this._setValue(this.value + this.step);
+        }
+
+        // TODO: If tab pressed
+      },
+
+      /**
        * Handle blur event on range replacement
        * @private
-       * @param e - event
        * @param blur - blur function reference needed to unbind listener
        */
-      _onBlur: function(e, blur) {
+      _blur: function(e, blur, keydown) {
         var input = this.input,
             el = this.el,
             // All els which wont cause blur if clicked
@@ -395,7 +432,9 @@
         // if not clicking on this.el / descendants
         if(els.indexOf(e.target) < 0) {
           this.hasFocus = false;
+
           window.removeEventListener('mousedown', blur);
+          window.removeEventListener('keydown', keydown);
 
           Event.fire(input, 'blur');
         }
@@ -522,19 +561,22 @@
        * @param {number} value
        */
       _setValue: function(value) {
+        var self = this;
         // set pointer position only when value changes
-        if(value !== this.oldInputValue) {
-          this.oldInputValue = this.input.value = this.newValue = value;
+        if(value !== self.oldInputValue) {
+          self.oldInputValue = self.input.value = self.newValue = value;
 
-          var min = this.min;
+          var min = self.min;
 
-          var percent = ((value - min) / (this.max - min) * 100) || 0;
-          this.pointer.style.left = [percent, '%'].join('');
+          var percent = ((value - min) / (self.max - min) * 100) || 0;
+          self.pointer.style.left = [percent, '%'].join('');
 
           // Do not fire event on first call (initialisation)
-          if(this.oldValue) {
-            Event.fire(this.input, 'input');
+          if(self.oldValue) {
+            Event.fire(self.input, 'input');
           }
+
+          self._change();
         }
       },
 
