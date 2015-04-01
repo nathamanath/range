@@ -52,7 +52,6 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 * tidy up
 * tests
 * work out all required events
-* key press support
 * list attr support
 * host docs
 

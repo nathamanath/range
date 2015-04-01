@@ -2,7 +2,7 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @version 0.0.7
+ * @version 0.0.8
  * @license Range.js v0.0.7 | https://github.com/nathamanath/range/license
  */
 
