@@ -6,7 +6,7 @@
  */
 
 
-(function() {
+(function(window, document) {
   'use strict';
 
   /**
@@ -42,7 +42,8 @@
         };
       }
 
-      return (self.create = method)(eventName);
+      self.create = method;
+      return method(eventName);
     },
 
     /**
@@ -92,7 +93,8 @@
         };
       }
 
-      (self.fire = method)(el, eventName);
+      self.fire = method;
+      method(el, eventName);
     }
   };
 
@@ -106,7 +108,7 @@
       window.Range = Range;
     }
 
-  })((function(document, window, Event) {
+  })((function(Event) {
 
     /**
      * Represents a range input
@@ -161,11 +163,10 @@
 
         input.parentNode.insertBefore(this.el, input.nextSibling);
         this._getDimensions();
-        this._getPointerWidth();
+        var pointerWidth = this._getPointerWidth();
 
-        this._getPointerWidth();
-
-        this.track.style.paddingRight = [this.pointerWidth, 'px'].join('');
+        this.pointer.style.width = pointerWidth;
+        this.track.style.paddingRight = pointerWidth;
       },
 
       /**
@@ -260,12 +261,19 @@
         this.xMax = rect.right - this.xMin;
       },
 
+      /**
+       * @private
+       * @returns {string} pointer width in px
+       */
       _getPointerWidth: function() {
         this.pointerWidth = this.args['pointerWidth'] ||
           this.pointer.offsetWidth;
+
+        return [this.pointerWidth, 'px'].join('');
       },
 
       /**
+       * HTML for entire range facade
        * @private
        * @returns {object} All input facade html
        */
@@ -323,7 +331,7 @@
         pointer.className = 'point';
         style.position = 'relative';
 
-        var pointerWidth = this.args['pointerWidth'];
+        var pointerWidth = this.pointerWidth;
 
         if(!!pointerWidth) {
           style.width = pointerWidth + 'px';
@@ -341,10 +349,17 @@
         var el = this.el;
 
         el.addEventListener('mousedown', function(e) {
-          var events = ['mousedown', 'mousemove', 'mouseup'];
-          self._dragStart(e, events, self._getMouseX);
 
-          self._focus();
+          var code = e.keyCode || e.which;
+
+          // left mousedown only
+          if(code === 1) {
+            var events = ['mousedown', 'mousemove', 'mouseup'];
+
+            self._dragStart(e, events, self._getMouseX);
+
+            self._focus();
+          }
         });
 
         el.addEventListener('touchstart', function(e) {
@@ -374,7 +389,7 @@
           Event.fire(self.input, 'focus');
 
           var keydown = function(e) {
-            self._keydown(e)
+            self._keydown(e);
           };
 
           var blur = function(e) {
@@ -402,12 +417,16 @@
         }
 
         // right or up arrow
-        if(code === 38 || code === 39) {
+        else if(code === 38 || code === 39) {
           e.preventDefault();
           this._setValue(this.value + this.step);
         }
 
-        // TODO: If tab pressed
+        // tab
+        // else if(code === 9) {
+        //   e.preventDefault();
+        //   // TODO: blur, and focus on next focusable element
+        // }
       },
 
       /**
@@ -523,7 +542,8 @@
           };
         }
 
-        return (this._getMouseX = method)(e);
+        this._getMouseX = method;
+        return method(e);
       },
 
       /**
@@ -660,6 +680,6 @@
       'create': Range.create
     };
 
-  })(document, window, Event));
-}).call(window);
+  })(Event));
+})(window, document);
 
