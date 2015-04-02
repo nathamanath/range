@@ -473,6 +473,52 @@
       },
 
       /**
+       * Stop user from selecting anything
+       * @private
+       */
+      _preventSelection: function() {
+        var method;
+        var self = this;
+
+        if(typeof self.el.onselectstart !== 'undefined') {
+          method = function(e) {
+            window.addEventListener('selectstart', self.noSelect = function(e) {
+              e.preventDefault();
+            });
+          }
+        } else {
+          method = function(e) {
+            document.body.style.MozUserSelect = "none";
+          };
+        }
+
+        self._preventSelection = method;
+        method();
+      },
+
+      /**
+       * Un-prevent selection
+       * @private
+       */
+      _allowSelection: function() {
+        var method;
+        var self = this;
+
+        if(typeof self.el.onselectstart !== 'undefined') {
+          method = function() {
+            window.removeEventListener('selectstart', self.noSelect);
+          };
+        } else {
+          method = function() {
+            document.body.style.MozUserSelect = "";
+          };
+        }
+
+        self._allowSelection = method;
+        method();
+      },
+
+      /**
        * Handle pointer drag for either touch or mouse
        * @private
        * @param {object} e - move event
@@ -497,14 +543,16 @@
           self._input(getX.call(self, e));
         });
 
-        window.addEventListener('selectstart', preventSelection);
+        // window.addEventListener('selectstart', preventSelection);
+        self._preventSelection();
 
         window.addEventListener(endEvent, onUp = function() {
           self._change();
 
           window.removeEventListener(moveEvent, onMove);
           window.removeEventListener(endEvent, onUp);
-          window.removeEventListener('selectstart', preventSelection);
+          // window.removeEventListener('selectstart', preventSelection);
+          self._allowSelection();
         });
 
         Event.fire(self.input, events[0]);

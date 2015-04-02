@@ -63,4 +63,5 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.
 * preventSelection method does not work in firefox.
+* wrong cursor when dragging pointer
 
