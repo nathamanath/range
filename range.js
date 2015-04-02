@@ -2,7 +2,7 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js v0.0.8 | https://github.com/nathamanath/range/license
+ * @license Range.js v0.0.9 | https://github.com/nathamanath/range/license
  */
 
 
@@ -482,13 +482,17 @@
 
         if(typeof self.el.onselectstart !== 'undefined') {
           method = function(e) {
+            document.body.style.cursor = 'default';
             window.addEventListener('selectstart', self.noSelect = function(e) {
               e.preventDefault();
             });
           }
         } else {
           method = function(e) {
-            document.body.style.MozUserSelect = "none";
+            var style = document.body.style;
+
+            style.cursor = 'default';
+            style.MozUserSelect = "none";
           };
         }
 
@@ -506,11 +510,15 @@
 
         if(typeof self.el.onselectstart !== 'undefined') {
           method = function() {
+            document.body.style.cursor = '';
             window.removeEventListener('selectstart', self.noSelect);
           };
         } else {
           method = function() {
-            document.body.style.MozUserSelect = "";
+            var style = document.body.style;
+
+            style.cursor = '';
+            style.MozUserSelect = "";
           };
         }
 
@@ -534,16 +542,11 @@
         self.oldValue = self.value;
         self._input(getX.call(self, e));
 
-        var preventSelection = function(e) {
-          e.preventDefault();
-          return false;
-        };
 
         window.addEventListener(moveEvent, onMove = function(e) {
           self._input(getX.call(self, e));
         });
 
-        // window.addEventListener('selectstart', preventSelection);
         self._preventSelection();
 
         window.addEventListener(endEvent, onUp = function() {
@@ -551,8 +554,9 @@
 
           window.removeEventListener(moveEvent, onMove);
           window.removeEventListener(endEvent, onUp);
-          // window.removeEventListener('selectstart', preventSelection);
           self._allowSelection();
+
+          document.body.style.cursor = '';
         });
 
         Event.fire(self.input, events[0]);
