@@ -623,7 +623,7 @@
 
         var scaled = this._scale(offsetX, from, to);
 
-        this._setValue(this._roundAndLimit(scaled));
+        this._setValue(scaled);
       },
 
       /**
@@ -633,6 +633,9 @@
        */
       _setValue: function(value) {
         var self = this;
+
+        value = self._roundAndLimit(value);
+
         // set pointer position only when value changes
         if(value !== self.oldInputValue) {
           self.oldInputValue = self.input.value = self.newValue = value;
