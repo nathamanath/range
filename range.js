@@ -5,7 +5,6 @@
  * @license Range.js 0.0.9 | https://github.com/nathamanath/range/license
  */
 
-
 (function(window, document) {
   'use strict';
 
@@ -481,18 +480,18 @@
         var self = this;
 
         if(typeof self.el.onselectstart !== 'undefined') {
-          method = function(e) {
+          method = function() {
             document.body.style.cursor = 'default';
             window.addEventListener('selectstart', self.noSelect = function(e) {
               e.preventDefault();
             });
-          }
+          };
         } else {
-          method = function(e) {
+          method = function() {
             var style = document.body.style;
 
             style.cursor = 'default';
-            style.MozUserSelect = "none";
+            style.MozUserSelect = 'none';
           };
         }
 
@@ -518,7 +517,7 @@
             var style = document.body.style;
 
             style.cursor = '';
-            style.MozUserSelect = "";
+            style.MozUserSelect = '';
           };
         }
 
