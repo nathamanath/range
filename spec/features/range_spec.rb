@@ -33,10 +33,10 @@ feature 'RangeInput' do
     end
 
     scenario 'right' do
-      tick = all('.tick').last
+      tickk = all('.tick').last
       value = range.value
 
-      point.drag_to tick
+      point.drag_to tickk
 
       expect(range.value).to be > value
     end
