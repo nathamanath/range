@@ -50,11 +50,10 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 ### TODO:
 
 * tidy up
-* tests
+* more tests
 * work out all required events
 * list attr support
 * host docs
-* check performance after closure compiler
 * tab keydown
 
 #### Known issues
