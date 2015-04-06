@@ -50,11 +50,10 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 ### TODO:
 
 * tidy up
-* tests
+* more tests
 * work out all required events
 * list attr support
 * host docs
-* check performance after closure compiler
 * tab keydown
 
 #### Known issues
@@ -62,6 +61,4 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 * Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.
-* preventSelection method does not work in firefox.
-* wrong cursor when dragging pointer
 
