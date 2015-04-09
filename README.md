@@ -49,11 +49,11 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 
 ### TODO:
 
-* tidy up
 * more tests
 * work out all required events
-* list attr support
+* proper list attr support
 * host docs
+* init takes optional el, nodelist, or selector
 
 #### Known issues
 

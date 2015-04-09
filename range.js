@@ -360,10 +360,7 @@
           // left mousedown only
           if(code === 1) {
             var events = ['mousedown', 'mousemove', 'mouseup'];
-
             self._dragStart(e, events, self._getMouseX);
-
-            self._focus();
           }
         });
 
@@ -414,29 +411,29 @@
       _keydown: function(e) {
         // TODO: cache which is in use
         var code = e.keyCode || e.charCode;
+        var self = this;
 
         // left or down arrow
         if(code === 40 || code === 37) {
           e.preventDefault();
-          this._setValue(this.value - this.step);
+          self._setValue(self.value - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
           e.preventDefault();
-          this._setValue(this.value + this.step);
+          self._setValue(self.value + self.step);
         }
 
         // tab
         else if(code === 9) {
-          this._blur();
+          self._blur();
         }
       },
 
       /**
-       * Handle blur event on range replacement
        * @private
-       * @param blur - blur function reference needed to unbind listener
+       * @param e - click event
        */
       _clickBlur: function(e) {
         var self = this,
@@ -446,6 +443,7 @@
             _els = el.querySelectorAll('*'),
             els = [];
 
+        // nodelist to array
         for(var i = 0, l = _els.length; i < l; i++) {
           els.push(_els[i]);
         }
@@ -458,6 +456,10 @@
         }
       },
 
+      /**
+       * Handle blur event on range replacement
+       * @private
+       */
       _blur: function() {
         var self = this;
 
@@ -652,8 +654,8 @@
           self.oldInputValue = self.input.value = self.newValue = value;
 
           var min = self.min;
-
           var percent = ((value - min) / (self.max - min) * 100) || 0;
+
           self.pointer.style.left = [percent, '%'].join('');
 
           // Do not fire event on first call (initialisation)
@@ -723,27 +725,35 @@
       return new Range(el, args).init();
     };
 
-    /**
-     * @todo take dom node / nodelist / selector /
-     * default to all input[type=range]
-     * @param {string} [selector] - css selector for ranges to replace
-     * @returns {array} Range instances
-     */
-    Range.init = function(selector, args) {
-      selector = selector || 'input[type=range]';
-      var els = document.querySelectorAll(selector);
-      var ranges = [];
-
-      for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(Range.create(els[i], args));
-      }
-
-      return ranges;
-    };
-
+    /** @memberof Range */
     return {
-      'init': Range.init,
-      'create': Range.create
+      /**
+       * @param {string|array|object} [ranges] - css selector, nodelist/array,
+       * or dom node to be replaced.
+       * @returns {object|array} Range instance(s)
+       */
+      'init': function(ranges, args) {
+        ranges = ranges || 'input[type=range]';
+
+        var replacements = [];
+        var els;
+
+        if(typeof ranges === 'string') {
+          // selector
+          ranges = document.querySelectorAll(ranges);
+        } else if(!!ranges.length) {
+          // array / nodelist
+        } else {
+          // el
+          return Range.create(ranges, args);
+        }
+
+        for(var i = 0, l = ranges.length; i < l; i++) {
+          replacements.push(Range.create(ranges[i], args));
+        }
+
+        return replacements;
+      }
     };
 
   })(Event));
