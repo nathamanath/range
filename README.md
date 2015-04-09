@@ -50,7 +50,7 @@ input element, your events will fire as before.
 * work out all required events
 * proper list attr support
 
-#### Known issues
+### Known issues
 
 * Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
