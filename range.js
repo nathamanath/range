@@ -302,6 +302,8 @@
 
         el.className = 'range-replacement';
 
+        el.setAttribute('tabindex', 0);
+
         style.position = 'relative';
         style.paddingRight = [width, 'px'].join('');
 
@@ -347,6 +349,10 @@
         var self = this;
         var el = this.el;
 
+        el.addEventListener('focus', function(e) {
+          self._focus(e);
+        });
+
         el.addEventListener('mousedown', function(e) {
 
           var code = e.keyCode || e.which;
@@ -387,16 +393,16 @@
           self.hasFocus = true;
           Event.fire(self.input, 'focus');
 
-          var keydown = function(e) {
+          self.keydown = function(e) {
             self._keydown(e);
           };
 
-          var blur = function(e) {
-            self._blur(e, blur, keydown);
+          self.blur = function(e) {
+            self._clickBlur(e);
           };
 
-          window.addEventListener('keydown', keydown);
-          window.addEventListener('mousedown', blur);
+          window.addEventListener('keydown', self.keydown);
+          window.addEventListener('mousedown', self.blur);
         }
       },
 
@@ -422,10 +428,9 @@
         }
 
         // tab
-        // else if(code === 9) {
-        //   e.preventDefault();
-        //   // TODO: blur, and focus on next focusable element
-        // }
+        else if(code === 9) {
+          this._blur();
+        }
       },
 
       /**
@@ -433,9 +438,10 @@
        * @private
        * @param blur - blur function reference needed to unbind listener
        */
-      _blur: function(e, blur, keydown) {
-        var input = this.input,
-            el = this.el,
+      _clickBlur: function(e) {
+        var self = this,
+            input = self.input,
+            el = self.el,
             // All els which wont cause blur if clicked
             _els = el.querySelectorAll('*'),
             els = [];
@@ -448,13 +454,19 @@
 
         // if not clicking on this.el / descendants
         if(els.indexOf(e.target) < 0) {
-          this.hasFocus = false;
-
-          window.removeEventListener('mousedown', blur);
-          window.removeEventListener('keydown', keydown);
-
-          Event.fire(input, 'blur');
+          self._blur();
         }
+      },
+
+      _blur: function() {
+        var self = this;
+
+        self.hasFocus = false;
+
+        window.removeEventListener('mousedown', self.blur);
+        window.removeEventListener('keydown', self.keydown);
+
+        Event.fire(self.input, 'blur');
       },
 
       /**
