@@ -115,8 +115,7 @@
      * @class Range
      * @param {object} el - range input to recieve facade
      * @param {object} args
-     * @param {string} args.pointerWidth - Set value for pointer width.
-     * Currently needed if range is initialy rendered with display: none
+     * @param {string} args.pointerWidth - See `.init`
      */
     var Range = function(el, args) {
       this.input = el;
@@ -725,11 +724,15 @@
       return new Range(el, args).init();
     };
 
-    /** @memberof Range */
     return {
       /**
-       * @param {string|array|object} [ranges] - css selector, nodelist/array,
+       * @memberof Range
+       * @param {string|array|object} [ranges=input[type=range]] - css selector, nodelist/array,
        * or dom node to be replaced.
+       * @param {object} args - arguments object
+       * @param {number} args.pointerWidth - static value for pointer width.
+       * Needed if range replacement is origionaly renered with `display: none`
+       *
        * @returns {object|array} Range instance(s)
        */
       'init': function(ranges, args) {

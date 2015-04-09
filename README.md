@@ -15,15 +15,13 @@ This will be fixed in a future release.
 After DOM ready call
 
 ```javascript
-Range.init();
+Range.init(ranges, args);
 ```
 
-### On individual inputs
+where ranges is optional. ranges can be a selector string, a nodelist/array of
+dom nodes, or a dom node. ranges defaults to `'input[type=range]'`
 
-```javascript
-var el = document.getElementById('range');
-Range.create(el);
-```
+and args is an arguments object.
 
 ### As a polyfill
 
@@ -37,8 +35,7 @@ Ie < 9 does not support the input event. Bind to `element.oninput` for ie8 inste
 ### Events stay the same
 
 Bind events to the real input element, and as this is just a facade ontop of an
-input element, your events will fire as before. (Currently change, input
-mousedown, mouseup, mosemove, and click are implemented. The others are coming soon).
+input element, your events will fire as before.
 
 ## Development
 
@@ -52,8 +49,6 @@ mousedown, mouseup, mosemove, and click are implemented. The others are coming s
 * more tests
 * work out all required events
 * proper list attr support
-* host docs
-* init takes optional el, nodelist, or selector
 
 #### Known issues
 
