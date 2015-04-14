@@ -48,7 +48,6 @@ input element, your events will fire as before.
 
 * more tests
 * work out all required events
-* proper list attr support
 
 ### Known issues
 

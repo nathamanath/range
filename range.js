@@ -133,19 +133,52 @@
         this._render();
         this._bindEvents();
         this._setValue(this.value);
-        this._list();
+        this._handleTicks();
 
         return this;
       },
 
+      _handleTicks: function() {
+        var ticks = this.args.ticks;
+
+        if(ticks) {
+          if(Object.prototype.toString.call(ticks) === '[object Array]') {
+            this._generateTicks(ticks);
+          } else if(!!ticks) {
+            // make array of possible values
+            ticks = [];
+
+            for(var i = this.min, l = this.max; i < l; i += this.step) {
+              ticks.push(i);
+            }
+
+            this._generateTicks(ticks);
+          }
+        } else {
+          this._list();
+        }
+      },
+
       /**
        * Handle list attribute if set
-       * @todo Propper list attr support
        * @private
        */
       _list: function() {
-        if(this.input.getAttribute('list')) {
-          this._generateTicks();
+        var listId, list, options;
+        var ticks = [];
+
+        if(listId = this.input.getAttribute('list')) {
+          // get point values
+
+          if(list = document.getElementById(listId)) {
+            options = list.querySelectorAll('option');
+
+            for(var i = 0, l = options.length; i < l; i++) {
+              ticks.push(parseInt(options[i].innerHTML, 10));
+            }
+
+            this._generateTicks(ticks);
+          }
         }
       },
 
@@ -168,10 +201,12 @@
       },
 
       /**
-       * generate all html required for tick marks
+       * generate all html required for tick marks. If ticks array is not
+       * provided, generate tick at each step.
        * @private
+       * @param {array} [ticks] - values to put ticks on
        */
-      _generateTicks: function() {
+      _generateTicks: function(ticks) {
         var el = document.createElement('div');
         var inner = this._generateTicksInner();
 
@@ -179,7 +214,7 @@
 
         el.className = 'ticks';
 
-        this._generateTickEls(inner);
+        this._generateTickEls(ticks, inner);
         this.ticks = el;
 
         this.el.appendChild(this.ticks);
@@ -220,14 +255,12 @@
        * @param {object} inner - element which contains ticks
        * @returns el containing all tick marks
        */
-      _generateTickEls: function(inner) {
-        var steps = (this.max - this.min) / this.step;
-        var stepPercent = 100 / steps;
-
+      _generateTickEls: function(values, inner) {
         var offset;
 
-        for(var i = 0; i <= steps; i++) {
-          offset = stepPercent * i;
+        for(var i = 0; i < values.length; i++) {
+          // scale value between min and max
+          offset = this._scale(values[i], [this.min, this.max], [0, 100]);
           inner.appendChild(this._generateTick(offset));
         }
       },
@@ -739,15 +772,12 @@
         ranges = ranges || 'input[type=range]';
 
         var replacements = [];
-        var els;
 
         if(typeof ranges === 'string') {
-          // selector
+          // selector string
           ranges = document.querySelectorAll(ranges);
-        } else if(!!ranges.length) {
-          // array / nodelist
-        } else {
-          // el
+        } else if(typeof ranges.length === 'undefined') {
+          // dom node
           return Range.create(ranges, args);
         }
 
