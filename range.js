@@ -2,7 +2,7 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js 0.0.9 | https://github.com/nathamanath/range/license
+ * @license Range.js 0.0.10 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
@@ -114,18 +114,25 @@
      *
      * @class Range
      * @param {object} el - range input to recieve facade
-     * @param {object} args
-     * @param {string} args.pointerWidth - Set value for pointer width.
-     * Currently needed if range is initialy rendered with display: none
+     * @param {object} [args]
+     * @param {string} [args.pointerWidth] - See `.init`
+     * @param {boolean|array} [args.ticks] - set ticks via js instaead of list
+     * if you like. true will put a tick on each step, array of numbers will put
+     * a tick on each value in array (similar to datalist).
+     * @param {number} [args.max=100] - alternate max setter
+     * @param {number} [args.min=0] - alternate min setter
+     * @param {number} [args.step=1] - alternate step setter
      */
     var Range = function(el, args) {
-      this.input = el;
+      var self = this;
 
-      this.args = args || {};
-      this.value = parseFloat(el.value);
-      this.max = parseFloat(el.getAttribute('max')) || 100;
-      this.min = parseFloat(el.getAttribute('min')) || 0;
-      this.step = parseFloat(el.getAttribute('step')) || 1;
+      self.input = el;
+      self.args = args || {};
+
+      self.value = parseFloat(el.value);
+      self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || 100;
+      self.min = parseFloat(el.getAttribute('min')) || self.args['min'] || 0;
+      self.step = parseFloat(el.getAttribute('step')) || self.args['step'] || 1;
     };
 
     /** @memberof Range */
@@ -134,19 +141,55 @@
         this._render();
         this._bindEvents();
         this._setValue(this.value);
-        this._list();
+        this._handleTicks();
 
         return this;
       },
 
+      _handleTicks: function() {
+        var ticks = this.args.ticks;
+
+        if(ticks) {
+          if(Object.prototype.toString.call(ticks) === '[object Array]') {
+            this._generateTicks(ticks);
+          } else if(!!ticks) {
+            // make array of possible values
+            ticks = [];
+
+            for(var i = this.min, l = this.max; i <= l; i += this.step) {
+              ticks.push(i);
+            }
+
+            this._generateTicks(ticks);
+          }
+        } else {
+          this._list();
+        }
+      },
+
       /**
        * Handle list attribute if set
-       * @todo Propper list attr support
        * @private
        */
       _list: function() {
-        if(this.input.getAttribute('list')) {
-          this._generateTicks();
+        var options;
+        var ticks = [];
+
+        var listId = this.input.getAttribute('list');
+        var list = document.getElementById(listId);
+
+        if(listId) {
+          // get point values
+
+          if(list) {
+            options = list.querySelectorAll('option');
+
+            for(var i = 0, l = options.length; i < l; i++) {
+              ticks.push(parseInt(options[i].innerHTML, 10));
+            }
+
+            this._generateTicks(ticks);
+          }
         }
       },
 
@@ -169,10 +212,12 @@
       },
 
       /**
-       * generate all html required for tick marks
+       * generate all html required for tick marks. If ticks array is not
+       * provided, generate tick at each step.
        * @private
+       * @param {array} ticks - values to put ticks on
        */
-      _generateTicks: function() {
+      _generateTicks: function(ticks) {
         var el = document.createElement('div');
         var inner = this._generateTicksInner();
 
@@ -180,7 +225,7 @@
 
         el.className = 'ticks';
 
-        this._generateTickEls(inner);
+        this._generateTickEls(ticks, inner);
         this.ticks = el;
 
         this.el.appendChild(this.ticks);
@@ -221,15 +266,14 @@
        * @param {object} inner - element which contains ticks
        * @returns el containing all tick marks
        */
-      _generateTickEls: function(inner) {
-        var steps = (this.max - this.min) / this.step;
-        var stepPercent = 100 / steps;
-
+      _generateTickEls: function(values, inner) {
         var offset;
 
-        for(var i = 0; i <= steps; i++) {
-          offset = stepPercent * i;
-          inner.appendChild(this._generateTick(offset));
+        for(var i = 0; i < values.length; i++) {
+          var value = values[i];
+          // scale value between min and max
+          offset = this._scale(value, [this.min, this.max], [0, 100]);
+          inner.appendChild(this._generateTick(offset, value));
         }
       },
 
@@ -238,10 +282,11 @@
        * @param {integer} offset - tick offset in %
        * @returns individual tick mark element
        */
-      _generateTick: function(offset) {
+      _generateTick: function(offset, value) {
         var tick = document.createElement('div');
 
         tick.className = 'tick';
+        tick.innerHTML = value;
 
         tick.style.position = 'absolute';
         tick.style.left = [offset, '%'].join('');
@@ -302,6 +347,8 @@
 
         el.className = 'range-replacement';
 
+        el.setAttribute('tabindex', 0);
+
         style.position = 'relative';
         style.paddingRight = [width, 'px'].join('');
 
@@ -347,6 +394,10 @@
         var self = this;
         var el = this.el;
 
+        el.addEventListener('focus', function(e) {
+          self._focus(e);
+        });
+
         el.addEventListener('mousedown', function(e) {
 
           var code = e.keyCode || e.which;
@@ -354,10 +405,7 @@
           // left mousedown only
           if(code === 1) {
             var events = ['mousedown', 'mousemove', 'mouseup'];
-
             self._dragStart(e, events, self._getMouseX);
-
-            self._focus();
           }
         });
 
@@ -387,16 +435,16 @@
           self.hasFocus = true;
           Event.fire(self.input, 'focus');
 
-          var keydown = function(e) {
+          self.keydown = function(e) {
             self._keydown(e);
           };
 
-          var blur = function(e) {
-            self._blur(e, blur, keydown);
+          self.blur = function(e) {
+            self._clickBlur(e);
           };
 
-          window.addEventListener('keydown', keydown);
-          window.addEventListener('mousedown', blur);
+          window.addEventListener('keydown', self.keydown);
+          window.addEventListener('mousedown', self.blur);
         }
       },
 
@@ -408,38 +456,39 @@
       _keydown: function(e) {
         // TODO: cache which is in use
         var code = e.keyCode || e.charCode;
+        var self = this;
 
         // left or down arrow
         if(code === 40 || code === 37) {
           e.preventDefault();
-          this._setValue(this.value - this.step);
+          self._setValue(self.value - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
           e.preventDefault();
-          this._setValue(this.value + this.step);
+          self._setValue(self.value + self.step);
         }
 
         // tab
-        // else if(code === 9) {
-        //   e.preventDefault();
-        //   // TODO: blur, and focus on next focusable element
-        // }
+        else if(code === 9) {
+          self._blur();
+        }
       },
 
       /**
-       * Handle blur event on range replacement
        * @private
-       * @param blur - blur function reference needed to unbind listener
+       * @param e - click event
        */
-      _blur: function(e, blur, keydown) {
-        var input = this.input,
-            el = this.el,
+      _clickBlur: function(e) {
+        var self = this,
+            input = self.input,
+            el = self.el,
             // All els which wont cause blur if clicked
             _els = el.querySelectorAll('*'),
             els = [];
 
+        // nodelist to array
         for(var i = 0, l = _els.length; i < l; i++) {
           els.push(_els[i]);
         }
@@ -448,13 +497,23 @@
 
         // if not clicking on this.el / descendants
         if(els.indexOf(e.target) < 0) {
-          this.hasFocus = false;
-
-          window.removeEventListener('mousedown', blur);
-          window.removeEventListener('keydown', keydown);
-
-          Event.fire(input, 'blur');
+          self._blur();
         }
+      },
+
+      /**
+       * Handle blur event on range replacement
+       * @private
+       */
+      _blur: function() {
+        var self = this;
+
+        self.hasFocus = false;
+
+        window.removeEventListener('mousedown', self.blur);
+        window.removeEventListener('keydown', self.keydown);
+
+        Event.fire(self.input, 'blur');
       },
 
       /**
@@ -640,8 +699,8 @@
           self.oldInputValue = self.input.value = self.newValue = value;
 
           var min = self.min;
-
           var percent = ((value - min) / (self.max - min) * 100) || 0;
+
           self.pointer.style.left = [percent, '%'].join('');
 
           // Do not fire event on first call (initialisation)
@@ -711,27 +770,36 @@
       return new Range(el, args).init();
     };
 
-    /**
-     * @todo take dom node / nodelist / selector /
-     * default to all input[type=range]
-     * @param {string} [selector] - css selector for ranges to replace
-     * @returns {array} Range instances
-     */
-    Range.init = function(selector, args) {
-      selector = selector || 'input[type=range]';
-      var els = document.querySelectorAll(selector);
-      var ranges = [];
-
-      for(var i = 0, l = els.length; i < l; i++) {
-        ranges.push(Range.create(els[i], args));
-      }
-
-      return ranges;
-    };
-
     return {
-      'init': Range.init,
-      'create': Range.create
+      /**
+       * @memberof Range
+       * @param {string|array|object} [ranges=input[type=range]] - css selector,
+       * nodelist/array, or dom node to be replaced.
+       * @param {object} args - arguments object
+       * @param {number} args.pointerWidth - static value for pointer width.
+       * Needed if range replacement is origionaly renered with `display: none`
+       *
+       * @returns {object|array} Range instance(s)
+       */
+      'init': function(ranges, args) {
+        ranges = ranges || 'input[type=range]';
+
+        var replacements = [];
+
+        if(typeof ranges === 'string') {
+          // selector string
+          ranges = document.querySelectorAll(ranges);
+        } else if(typeof ranges.length === 'undefined') {
+          // dom node
+          return Range.create(ranges, args);
+        }
+
+        for(var i = 0, l = ranges.length; i < l; i++) {
+          replacements.push(Range.create(ranges[i], args));
+        }
+
+        return replacements;
+      }
     };
 
   })(Event));
