@@ -329,6 +329,7 @@
         el.appendChild(this.track);
         this.track.appendChild(this.pointer);
 
+        // TODO: _preventSelection?!?
         el.addEventListener('selectstart', function(e) {
           e.preventDefault();
         });
@@ -399,7 +400,6 @@
         });
 
         el.addEventListener('mousedown', function(e) {
-
           var code = e.keyCode || e.which;
 
           // left mousedown only
@@ -460,13 +460,11 @@
 
         // left or down arrow
         if(code === 40 || code === 37) {
-          e.preventDefault();
           self._setValue(self.value - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
-          e.preventDefault();
           self._setValue(self.value + self.step);
         }
 
@@ -474,6 +472,8 @@
         else if(code === 9) {
           self._blur();
         }
+
+        self.input.dispatchEvent(e);
       },
 
       /**
@@ -617,6 +617,7 @@
           document.body.style.cursor = '';
         });
 
+        // touchstart || mousedown
         Event.fire(self.input, events[0]);
       },
 

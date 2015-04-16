@@ -18,8 +18,8 @@ After DOM ready call
 Range.init(ranges, args);
 ```
 
-where ranges is optional. ranges can be a selector string, a nodelist/array of
-dom nodes, or a dom node. ranges defaults to `'input[type=range]'`
+where ranges is optional. Ranges can be a selector string, a nodelist/array of
+dom nodes, or a dom node. Ranges defaults to `'input[type=range]'`
 
 and args is an arguments object.
 
@@ -47,7 +47,7 @@ input element, your events will fire as before.
 ### TODO:
 
 * more tests
-* work out all required events
+* keydown, keyup, and keypress events
 
 ### Known issues
 
