@@ -1,4 +1,4 @@
-# Range select replacement
+# HTML5 range input replacement
 
 'cause they don't work in ie <= 9, and they are inconsistent in proper browsers.
 

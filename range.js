@@ -2,7 +2,7 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js 0.0.10 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.11 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
@@ -342,7 +342,7 @@
        * @returns Range replacement wrapper element
        */
       _rangeEl: function() {
-        var  el = document.createElement('div');
+        var el = document.createElement('div');
         var width = this.pointerWidth || 0;
         var style = el.style;
 
@@ -393,7 +393,7 @@
        */
       _bindEvents: function() {
         var self = this;
-        var el = this.el;
+        var el = self.el;
 
         el.addEventListener('focus', function(e) {
           self._focus(e);
