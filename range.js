@@ -472,8 +472,6 @@
         else if(code === 9) {
           self._blur();
         }
-
-        self.input.dispatchEvent(e);
       },
 
       /**
@@ -519,13 +517,14 @@
       /**
        * update element dimensions, reset value and pointer position
        * to that of this.input
+       * @param {boolean} silent - supress change + input event
        * @returns Range instance
        */
-      'update': function() {
+      'update': function(silent) {
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
-        this._setValue(this.value);
+        this._setValue(this.value, true);
 
         return this;
       },
@@ -689,8 +688,9 @@
        * Sets value of both this.input and range replacement
        * @private
        * @param {number} value
+       * @param {boolean} silent - no inPut or change event
        */
-      _setValue: function(value) {
+      _setValue: function(value, silent) {
         var self = this;
 
         value = self._roundAndLimit(value);
@@ -705,25 +705,26 @@
           self.pointer.style.left = [percent, '%'].join('');
 
           // Do not fire event on first call (initialisation)
-          if(self.oldValue) {
+          if(self.oldValue && !silent) {
             Event.fire(self.input, 'input');
           }
 
-          self._change();
+          self._change(silent);
         }
       },
 
       /**
        * Handle change of value if changed
        * @private
+       * @param {boolean} silent - no change event
        */
-      _change: function() {
+      _change: function(silent) {
         var newValue = this.newValue;
         var input = this.input;
 
         if(this.oldValue !== newValue) {
           input.value = this.oldValue = this.value = newValue;
-          Event.fire(input, 'change');
+          if(!silent) Event.fire(input, 'change');
         }
       },
 

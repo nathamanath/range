@@ -28,6 +28,7 @@
 
       /**
        * The actual binding... simples :)
+       * Does not fire change event on first update
        * @example data-bind="range: value"
        */
       ko.bindingHandlers.range = {
@@ -41,8 +42,12 @@
           ko.unwrap(valueAccessor());
           ko.bindingHandlers.value.update(element, valueAccessor, allBindings, viewModel, bindingContext);
 
-          element._rangeReplacement.update();
-        }
+          element._rangeReplacement.update(!ko.bindingHandlers.range.hasUpdated);
+
+          ko.bindingHandlers.range.hasUpdated = true;
+        },
+
+        hasUpdated: false
       };
 
       /** A view model to show usage */
