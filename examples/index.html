@@ -53,6 +53,12 @@
         input.addEventListener('input', onEvent);
         input.addEventListener('focus', onEvent);
         input.addEventListener('blur', onEvent);
+        input.addEventListener('mousedown', onEvent);
+        input.addEventListener('mouseup', onEvent);
+
+        input.addEventListener('keydown', onEvent);
+        input.addEventListener('keyup', onEvent);
+        input.addEventListener('keypress', onEvent);
 
         // Next best thing to input event for ie8
         // input.oninput = function() { console.log('hi'); };
