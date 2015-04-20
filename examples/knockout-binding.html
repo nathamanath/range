@@ -65,6 +65,15 @@
 
       ko.applyBindings(new AppViewModel());
 
+      /** just to show it works */
+      var ranges = document.querySelectorAll('input');
+
+      [].forEach.call(ranges, function(range) {
+        range.addEventListener('change', function() {
+          console.log(this.id + ': ' + this.value);
+        })
+      });
+
     </script>
   </body>
 </html>
