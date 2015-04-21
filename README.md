@@ -51,6 +51,7 @@ input element, your events will fire as before.
 
 ### Known issues
 
+* \_keydown called twice on keydown
 * Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.

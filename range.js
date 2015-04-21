@@ -97,6 +97,8 @@
     }
   };
 
+  var throttle = function() {};
+
   (function(Range) {
     // Expose range
     var define = window.define || null;
@@ -479,6 +481,10 @@
         else if(code === 9) {
           self._blur();
         }
+
+        // forward keydown event
+        console.log('KEYDOWN');
+        Event.fire(this.input, 'keydown');
       },
 
       /**
