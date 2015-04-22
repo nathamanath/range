@@ -28,7 +28,14 @@ and args is an arguments object.
 * [polyfill
   event listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener)
 * Use modernizr or similar to detect range input support.
-* Apply as above.
+```javascript
+  Modernizr.load({
+    test: Modernizr.inputtypes.range,
+    nope: ['range.js', 'range-init.js']
+  })
+```
+
+* where `range-init.js` initializes range (see above)
 
 Ie < 9 does not support the input event. Bind to `element.oninput` for ie8 instead.
 

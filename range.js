@@ -2,7 +2,7 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js 0.0.12 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.13 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
