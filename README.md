@@ -52,12 +52,12 @@ input element, your events will fire as before.
 
 ### TODO
 
-* useful test suite + means of running in many browsers.
-* Refactor
+* useful test suite
 
 #### Later
 
 * divide into modules
+* ie8 support
 
 ### Known issues
 
