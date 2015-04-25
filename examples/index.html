@@ -46,6 +46,10 @@
 
       var onEvent = function(e) {
         console.log(e.target.id + ': ' + e.type + '! - ' + this.value);
+
+        if(e.which) {
+          console.log('keycode: ' + e.which);
+        }
       };
 
       for(var i = 0, input; input = inputs[i]; i++) {
