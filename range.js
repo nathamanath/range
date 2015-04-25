@@ -332,6 +332,7 @@
        */
       _template: function() {
         var el = this._rangeEl();
+
         this.track = this._trackEl();
         this.pointer = this._pointerEl();
 
@@ -436,6 +437,7 @@
       /**
        * Handle focus
        * @private
+       * @fires this.input#focus
        */
       _focus: function() {
         var self = this;
@@ -461,6 +463,7 @@
        * Called when focused on range replacement and keydown
        * @private
        * @param e - keydown event
+       * @fires this.input#keydown
        */
       _keydown: function(e) {
         // TODO: cache which is in use
@@ -515,6 +518,7 @@
       /**
        * Handle blur event on range replacement
        * @private
+       * @fires this.input#blur
        */
       _blur: function() {
         var self = this;
@@ -602,6 +606,8 @@
        * @param {object} e - move event
        * @param {array} eventNames - names of required events
        * @param {function} getX - method which returns x position of event
+       * @fires this.input#mousedown
+       * @fires this.input#touchstart
        */
       _dragStart: function(e, events, getX) {
         var self = this,
@@ -637,6 +643,9 @@
        * Handle end of pointer drag (touch or mouse)
        * @private
        * @param {string} endEventName
+       * @fires this.input#click
+       * @fires this.input#mouseup
+       * @fires this.input#touchend
        */
       _dragEnd: function(endEventName) {
         this._change();
@@ -702,6 +711,7 @@
        * @private
        * @param {number} value
        * @param {boolean} silent - no inPut or change event
+       * @fires this.input#input
        */
       _setValue: function(value, silent) {
         var self = this;
@@ -717,7 +727,7 @@
 
           self.pointer.style.left = [percent, '%'].join('');
 
-          // Do not fire event on first call (initialisation)
+          // Do not fire event on first call (initialisation) or if silent
           if(self.oldValue && !silent) {
             Event.fire(self.input, 'input');
           }
@@ -749,18 +759,18 @@
        * @param {number} n
        */
       _roundAndLimit: function(n) {
+        var step = this.step;
+
         // count # of decimals in this.step
-        var decimals = (this.step + '').split('.')[1];
+        var decimals = (step + '').split('.')[1];
         var places = (decimals) ? decimals.length : 0;
 
-        var rounded = (Math.round(n / this.step) * this.step).toFixed(places);
+        var rounded = (Math.round(n / step) * step).toFixed(places);
 
         return Math.min(Math.max(rounded, this.min), this.max);
       },
 
       /**
-       * Scale a number
-       *
        * @private
        * @param {number} value - number to be rounded
        * @param {array} rangeFrom - Source range: [srcLow, srcHigh]
@@ -790,6 +800,7 @@
     return {
       /**
        * @memberof Range
+       * @static
        * @param {string|array|object} [ranges=input[type=range]] - css selector,
        * nodelist/array, or dom node to be replaced.
        * @param {object} args - arguments object
