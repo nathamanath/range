@@ -18,6 +18,13 @@
     /** custom event cache */
     _cache: {},
 
+    keyboardEvents: ['keydown', 'keyup', 'keypress'],
+
+    eventType: function(eventName) {
+      var keyboardEvent = (this.keyboardEvents.indexOf(eventName) >= 0);
+      return (keyboardEvent) ? 'KeyboardEvent' : 'HTMLEvents';
+    },
+
     /**
      * Lazily evaluates which create method needed
      * @param eventName
@@ -26,10 +33,15 @@
       var method;
       var self = this;
 
+      // TODO: set keycode?
+
       if (document.createEvent) {
         method = function(eventName) {
-          var event = document.createEvent('HTMLEvents');
-          event.initEvent(eventName, true, true);
+          var event = document.createEvent(self.eventType(eventName));
+
+          // dont bubble
+          // TODO: set option for this. is that needed tho?
+          event.initEvent(eventName, false, true);
           return self.cache(eventName, event);
         };
       } else {
@@ -450,11 +462,16 @@
             self._keydown(e);
           };
 
+          self.keyup = function() {
+            Event.fire(self.input, 'keyup');
+          };
+
           self.blur = function(e) {
             self._clickBlur(e);
           };
 
           window.addEventListener('keydown', self.keydown);
+          window.addEventListener('keyup', self.keyup);
           window.addEventListener('mousedown', self.blur);
         }
       },
@@ -485,8 +502,7 @@
           self._blur();
         }
 
-        // forward keydown event
-        console.log('KEYDOWN');
+        // TODO: set keycode!!
         Event.fire(this.input, 'keydown');
       },
 
@@ -527,6 +543,7 @@
 
         window.removeEventListener('mousedown', self.blur);
         window.removeEventListener('keydown', self.keydown);
+        window.removeEventListener('keyup', self.keyup);
 
         Event.fire(self.input, 'blur');
       },

@@ -53,12 +53,11 @@ input element, your events will fire as before.
 
 ### TODO:
 
-* more tests
-* keydown, keyup, and keypress events
+* keycode for keyboard events
+* useful test suite + means of running in many browsers.
 
 ### Known issues
 
-* \_keydown called twice on keydown
 * Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.
