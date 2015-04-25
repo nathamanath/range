@@ -15,29 +15,34 @@
    * @private
    */
   var Event = {
-    /** custom event cache */
-    _cache: {},
-
     /**
      * Lazily evaluates which create method needed
      * @param eventName
+     * @param [eventType=HTMLEvents] - type of event
      */
-    create: function(eventName) {
+    create: function(eventName, eventType) {
       var method;
       var self = this;
 
+      eventType = eventType || 'HTMLEvents';
+
       if (document.createEvent) {
         method = function(eventName) {
-          var event = document.createEvent('HTMLEvents');
-          event.initEvent(eventName, true, true);
-          return self.cache(eventName, event);
+          var event = document.createEvent(eventType);
+
+          // dont bubble
+          event.initEvent(eventName, false, true);
+
+          return event;
         };
       } else {
         // ie < 9
-        method = function(eventName) {
-          var event = document.createEventObject();
-          event.eventType = eventName;
-          return self.cache(eventName, event);
+        // BUGFIX: Infinite loop on keypress in ie8
+        method = function(eventName, eventType) {
+          var _event = document.createEventObject(window.event);
+          _event.cancelBubble = true;
+          _event.eventType = eventName;
+          return _event;
         };
       }
 
@@ -46,45 +51,40 @@
     },
 
     /**
-     * @param eventName
-     * @param event
-     */
-    cache: function(eventName, event) {
-      event.eventName = eventName;
-      this._cache[eventName] = event;
-      return event;
-    },
-
-    /**
-     * Get or create custom event of name
-     * @param {string} name
-     * @returns {object} custom event
-     */
-    get: function(eventName) {
-      return this._cache[eventName] || this.create(eventName);
-    },
-
-    /**
      * Lazily evaluates which fire event method is needed
      * @param el
      * @param eventName
      */
-    fire: function(el, eventName) {
+    fire: function(el, eventName, eventType, code) {
       var method;
       var self = this;
 
       if(document.createEvent) {
-        method = function(el, eventName) {
-          el.dispatchEvent(self.get(eventName));
+        method = function(el, eventName, eventType, code) {
+          var event = self.create(eventName, eventType);
+
+          if(eventType === 'KeyboardEvent') {
+            var get = { get: function() { return code } };
+            var defineProperty = Object.defineProperty;
+
+            defineProperty(event, 'which', get);
+            defineProperty(event, 'keyCode', get);
+          }
+
+          el.dispatchEvent(event);
         };
       } else {
         // ie < 9
-        method = function(el, eventName) {
+        method = function(el, eventName, eventType, code) {
           var onEventName = ['on', eventName].join('');
 
           if(eventName !== 'input') {
             // Existing ie < 9 event name
-            el.fireEvent(onEventName, self.get(eventName));
+            var _event = self.create(eventName);
+
+            _event.keyCode = code;
+
+            el.fireEvent(onEventName, _event);
           } else if(el[onEventName]) {
             // TODO: nicer input event handling for ie8
             el[onEventName]();
@@ -97,8 +97,6 @@
     }
   };
 
-  var throttle = function() {};
-
   (function(Range) {
     // Expose range
     var define = window.define || null;
@@ -108,7 +106,6 @@
     } else {
       window.Range = Range;
     }
-
   })((function(Event) {
 
     /**
@@ -404,23 +401,24 @@
       _bindEvents: function() {
         var self = this;
         var el = self.el;
-
-        el.addEventListener('focus', function(e) {
-          self._focus(e);
-        });
+        var events;
 
         el.addEventListener('mousedown', function(e) {
           var code = e.keyCode || e.which;
 
           // left mousedown only
-          if(code === 1) {
-            var events = ['mousedown', 'mousemove', 'mouseup'];
+          // `|| (!code && e.keyCode == 0)` for ie8
+          if(code === 1 || (!code && e.keyCode == 0)) {
+            events = ['mousedown', 'mousemove', 'mouseup'];
             self._dragStart(e, events, self._getMouseX);
           }
+
+          // not bound to focus event 'cause ie
+          self._focus(e);
         });
 
         el.addEventListener('touchstart', function(e) {
-          var events = ['touchstart', 'touchmove', 'touchend'];
+          events = ['touchstart', 'touchmove', 'touchend'];
           self._dragStart(e, events, self._getTouchX);
         });
 
@@ -431,13 +429,13 @@
         el.addEventListener('touchend', function() {
           self._dragEnd('touchend');
         });
-
       },
 
       /**
        * Handle focus
        * @private
        * @fires this.input#focus
+       * @fires this.input#keyup
        */
       _focus: function() {
         var self = this;
@@ -450,11 +448,16 @@
             self._keydown(e);
           };
 
+          self.keyup = function(e) {
+            Event.fire(self.input, 'keyup', 'KeyboardEvent', (e.keyCode || e.charCode));
+          };
+
           self.blur = function(e) {
             self._clickBlur(e);
           };
 
-          window.addEventListener('keydown', self.keydown);
+          document.addEventListener('keydown', self.keydown);
+          document.addEventListener('keyup', self.keyup);
           window.addEventListener('mousedown', self.blur);
         }
       },
@@ -485,9 +488,7 @@
           self._blur();
         }
 
-        // forward keydown event
-        console.log('KEYDOWN');
-        Event.fire(this.input, 'keydown');
+        Event.fire(this.input, 'keydown', 'KeyboardEvent', code);
       },
 
       /**
@@ -526,7 +527,8 @@
         self.hasFocus = false;
 
         window.removeEventListener('mousedown', self.blur);
-        window.removeEventListener('keydown', self.keydown);
+        document.removeEventListener('keydown', self.keydown);
+        document.removeEventListener('keyup', self.keyup);
 
         Event.fire(self.input, 'blur');
       },
@@ -636,6 +638,7 @@
         });
 
         // touchstart || mousedown
+        // TODO: not firing in ie8
         Event.fire(self.input, events[0]);
       },
 
