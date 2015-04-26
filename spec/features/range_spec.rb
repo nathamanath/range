@@ -13,7 +13,7 @@ feature 'RangeInput' do
     visit url
   end
 
-  let(:range) { first 'input[type=range]' }
+  let(:range) { find '#range-1' }
   let(:point) { first '.point' }
   let(:tick) { first '.tick' }
 
@@ -24,7 +24,7 @@ feature 'RangeInput' do
   end
 
   feature 'drag and drop' do
-    scenario 'left' do
+    scenario 'drag left' do
       value = range.value
 
       point.drag_to tick
@@ -32,13 +32,55 @@ feature 'RangeInput' do
       expect(range.value).to be < value
     end
 
-    scenario 'right' do
+    scenario 'drag right' do
       tickk = all('.tick').last
       value = range.value
 
+      # TODO:drag n pixels instead
       point.drag_to tickk
 
       expect(range.value).to be > value
+    end
+  end
+
+  feature 'keys' do
+    scenario 'press right' do
+      value = range.value
+      point.click
+      point.native.send_keys :arrow_right
+      expect(range.value).to be > value
+    end
+
+    scenario 'press left' do
+      value = range.value
+      point.click
+      point.native.send_keys :arrow_left
+      expect(range.value).to be < value
+    end
+
+    scenario 'press up' do
+      value = range.value
+      point.click
+      point.native.send_keys :arrow_up
+      expect(range.value).to be > value
+    end
+
+    scenario 'press down' do
+      value = range.value
+      point.click
+      point.native.send_keys :arrow_down
+      expect(range.value).to be < value
+    end
+
+    scenario 'press tab' do
+      replacement = first '.range-replacement'
+      replacement.click
+      replacement.native.send_keys :tab
+
+      range2 = find('#range-2')
+      focused = page.driver.browser.switch_to.active_element
+
+      expect(focused).to eq range2.native
     end
   end
 
@@ -62,10 +104,12 @@ feature 'RangeInput' do
   end
 
   feature 'max value' do
+    # Init range with args, try to set > max
     scenario 'is 17'
   end
 
   feature 'min value' do
+    # Init range with args, try to set < min
     scenario 'is 4'
   end
 

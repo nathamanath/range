@@ -5,8 +5,7 @@
 The aim of this project is to create a range input facade will work, and display
 consistently in ie >= 9 (with eventListener polyfill), and modern browsers.
 
-Currently ie 8 is not fully supported, however range.js mostly works there too.
-This will be fixed in a future release.
+Currently ie 8 is not fully supported. This will be fixed in a future release.
 
 ## Usage
 
@@ -28,7 +27,14 @@ and args is an arguments object.
 * [polyfill
   event listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener)
 * Use modernizr or similar to detect range input support.
-* Apply as above.
+```javascript
+  Modernizr.load({
+    test: Modernizr.inputtypes.range,
+    nope: ['range.js', 'range-init.js']
+  })
+```
+
+* where `range-init.js` initializes range (see above)
 
 Ie < 9 does not support the input event. Bind to `element.oninput` for ie8 instead.
 
@@ -44,13 +50,19 @@ input element, your events will fire as before.
 * set $CLOSURE_PATH environment variable to closure compiler jar path
 * `rake build`
 
-### TODO:
+### TODO
 
-* more tests
-* keydown, keyup, and keypress events
+* useful test suite
+
+#### Later
+
+* divide into modules
+* ie8 support
 
 ### Known issues
 
+* tabindex not woking in ie8
+* keyboard input does not work in ie8
 * Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.
