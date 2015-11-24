@@ -69,3 +69,6 @@ DEPENDENCIES
   rspec
   selenium-webdriver
   uglifier
+
+BUNDLED WITH
+   1.10.1
