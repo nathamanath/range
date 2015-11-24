@@ -2,11 +2,13 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js 0.0.13 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.14 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
   'use strict';
+
+  var CSS_PREFIX = 'range-replacement-';
 
   /**
    * Manages custom events
@@ -97,6 +99,88 @@
     }
   };
 
+  /**
+   * Represents a point (selected value) for a range input
+   *
+   * @class Point
+   */
+  var Point = (function() {
+
+    var Klass = function(args) {
+      this._value = this._oldValue = args.value;
+      this._width = args.width;
+      this._track = args.track;
+    };
+
+    /** @lends Point */
+    Klass.prototype = {
+      constructor: 'Point',
+
+      init: function() {
+        this._el = this._template();
+
+        return this;
+      },
+
+      /** @returns pointer html element */
+      _template: function() {
+        var pointer = document.createElement('div');
+        var style = pointer.style;
+
+        pointer.className = CSS_PREFIX + 'point';
+        style.position = 'absolute';
+
+        var pointerWidth = this._width;
+
+        if(!!pointerWidth) {
+          style.width = pointerWidth + 'px';
+        }
+
+        return pointer;
+      },
+
+      /**
+       * gets / sets value
+       *
+       * @param value - number to replace value
+       * @returns value of point
+       */
+      value: function(value) {
+        if(arguments.length) {
+          this._oldValue = this._value;
+          this._value = parseFloat(value);
+        }
+
+        return this._value;
+      },
+
+      /**
+       * gets / sets width
+       *
+       * @param width - number to replace width
+       * @returns width of point
+       */
+      width: function(width) {
+        if(arguments.length) {
+          this._width = parseFloat(width);
+        }
+
+        return this._width;
+      },
+
+      /** append point html to track */
+      render: function() {
+        this._track.appendChild(this._el);
+
+        return this;
+      }
+    };
+
+    return Klass;
+
+  })();
+
+
   (function(Range) {
     // Expose range
     var define = window.define || null;
@@ -106,7 +190,12 @@
     } else {
       window.Range = Range;
     }
-  })((function(Event) {
+  })((function(Event, Point) {
+
+    var DEFAULT_POINTERS = 1;
+    var DEFAULT_RANGE_MAX = 100;
+    var DEFAULT_RANGE_MIN = 0;
+    var DEFAULT_RANGE_STEP = 1;
 
     /**
      * Represents a range input
@@ -128,14 +217,18 @@
       self.input = el;
       self.args = args || {};
 
+      self.pointers = self.args.pointers || DEFAULT_POINTERS;
+
       self.value = parseFloat(el.value);
-      self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || 100;
-      self.min = parseFloat(el.getAttribute('min')) || self.args['min'] || 0;
-      self.step = parseFloat(el.getAttribute('step')) || self.args['step'] || 1;
+      self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || DEFAULT_RANGE_MAX;
+      self.min = parseFloat(el.getAttribute('min')) || self.args['min'] || DEFAULT_RANGE_MIN;
+      self.step = parseFloat(el.getAttribute('step')) || self.args['step'] || DEFAULT_RANGE_STEP;
     };
 
     /** @memberof Range */
     Range.prototype = {
+      constructor: 'Range',
+
       /**
        * Initialize range replacements
        * @example new Range(args).init();
@@ -213,7 +306,7 @@
         this._getDimensions();
         var pointerWidth = this._getPointerWidth();
 
-        this.pointer.style.width = pointerWidth;
+        this.pointer.width(pointerWidth);
         this.track.style.paddingRight = pointerWidth;
       },
 
@@ -243,10 +336,9 @@
        * @param ticks - ticks element
        */
       _styleTicks: function(ticks) {
-        var hpw = this.pointerWidth / 2;
         var style = ticks.style;
 
-        style.padding = ['0', hpw, 'px'].join('');
+        style.padding = ['0', this.pointerWidth / 2, 'px'].join('');
         style.width = '100%';
         style.position = 'absolute';
       },
@@ -331,10 +423,15 @@
         var el = this._rangeEl();
 
         this.track = this._trackEl();
-        this.pointer = this._pointerEl();
+        // this.pointer = this._pointerEl();
+
+        this.pointer = new Point({
+          track: this.track,
+          width: this.pointerWidth,
+          value: 0
+        }).init().render();
 
         el.appendChild(this.track);
-        this.track.appendChild(this.pointer);
 
         // TODO: _preventSelection?!?
         el.addEventListener('selectstart', function(e) {
@@ -379,19 +476,12 @@
        * @returns Generated pointer el
        */
       _pointerEl: function() {
-        var pointer = document.createElement('div');
-        var style = pointer.style;
 
-        pointer.className = 'point';
-        style.position = 'relative';
+        return new Pointer({
+          width: this.pointerWidth,
+          value: 50
+        }).init();
 
-        var pointerWidth = this.pointerWidth;
-
-        if(!!pointerWidth) {
-          style.width = pointerWidth + 'px';
-        }
-
-        return pointer;
       },
 
       /**
@@ -612,14 +702,15 @@
        * @fires this.input#touchstart
        */
       _dragStart: function(e, events, getX) {
-        var self = this,
-            onMove, onUp,
-            moveEvent = events[1],
-            endEvent = events[2];
+        var self = this;
+
+        var onMove, onUp;
+
+        var moveEvent = events[1];
+        var endEvent = events[2];
 
         self.oldValue = self.value;
         self._input(getX.call(self, e));
-
 
         window.addEventListener(moveEvent, onMove = function(e) {
           self._input(getX.call(self, e));
@@ -723,12 +814,15 @@
 
         // set pointer position only when value changes
         if(value !== self.oldInputValue) {
+          self.pointer.value(value);
+
           self.oldInputValue = self.input.value = self.newValue = value;
 
           var min = self.min;
           var percent = ((value - min) / (self.max - min) * 100) || 0;
 
-          self.pointer.style.left = [percent, '%'].join('');
+          // TODO: how should left be set
+          self.pointer._el.style.left = [percent, '%'].join('');
 
           // Do not fire event on first call (initialisation) or if silent
           if(self.oldValue && !silent) {
@@ -834,5 +928,5 @@
       }
     };
 
-  })(Event));
+  })(Event, Point));
 })(window, document);
