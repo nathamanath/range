@@ -257,19 +257,23 @@
 
         //this._setValue(this._pointers[0], this.value, silent);
 
+        this._handleTicks();
+
         this._setPointerValues()
 
-        this._handleTicks();
+        this._lastPointer = this._pointers[0];
 
         return this;
       },
 
+      /** Set pointer values from input value */
       _setPointerValues: function() {
         var values = this.input.value.split(',');
 
         for(var i = 0, l = values.length; i < l; i++) {
           this._setValue(this._pointers[i], values[i], true);
         }
+
       },
 
       _handleTicks: function() {
@@ -331,7 +335,10 @@
         this._getDimensions();
         var pointerWidth = this._getPointerWidth();
 
-        this._pointers[0].width(pointerWidth);
+        this._pointers.forEach(function(pointer) {
+          pointer.width(pointerWidth);
+        });
+
         this.track.style.paddingRight = pointerWidth;
       },
 
@@ -391,10 +398,11 @@
        */
       _generateTickEls: function(values, inner) {
         var offset;
+        var value;
 
         for(var i = 0; i < values.length; i++) {
 
-          var value = values[i];
+          value = values[i];
           // scale value between min and max
           offset = this._scale(value, [this.min, this.max], [0, 100]);
           inner.appendChild(this._generateTick(offset, value));
@@ -413,9 +421,18 @@
         tick.innerHTML = value;
 
         tick.style.position = 'absolute';
-        tick.style.left = [offset, '%'].join('');
+        tick.style.left = offset + '%';
 
         return tick;
+      },
+
+      _generateSelected: function() {
+        var selected = document.createElement('div');
+
+        selected.className = CSS_PREFIX + 'selected';
+        selected.style.position = 'absolute';
+
+        return selected;
       },
 
       /**
@@ -450,7 +467,9 @@
         var totalPointers = (this._mode === 'RANGE') ? 2 : 1;
 
         this.track = this._trackEl();
-        // this.pointer = this._pointerEl();
+        this._selectedEl = this._generateSelected();
+
+        this.track.appendChild(this._selectedEl);
 
         for(var i = 0, l = totalPointers; i < l; i++) {
           var point = new Point({
@@ -602,24 +621,23 @@
         var code = e.keyCode || e.charCode;
         var self = this;
 
+
+        var pointer = self._lastPointer;
+
         // left or down arrow
         if(code === 40 || code === 37) {
-
-          self._setValue(self._pointers[0], self.value - self.step);
-
+          self._setValue(pointer, pointer.value() - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
-
-          self._setValue(self._pointers[0], self.value + self.step);
+          self._setValue(pointer, pointer.value() + self.step);
         }
 
         // tab
         else if(code === 9) {
           self._blur();
         }
-
 
         Event.fire(this.input, 'keydown', 'KeyboardEvent', code);
 
@@ -864,6 +882,8 @@
       _setValue: function(pointer, value, silent) {
         var self = this;
 
+        self._lastPointer = pointer;
+
         value = self._roundAndLimit(value);
 
         // set pointer position only when value changes
@@ -885,8 +905,40 @@
             Event.fire(self.input, 'input');
           }
 
+          self._updateSelected();
+
           self._change(silent);
         }
+      },
+
+      /** position selected el */
+      _updateSelected: function() {
+        if(this._mode === 'RANGE') {
+          this._updateRangeSelected();
+        } else if(this._mode === 'NUMBER') {
+          this._updateNumberSelected();
+        }
+      },
+
+      /** selected spans from left of track to center of pointer */
+      _updateNumberSelected: function() {
+        var selected = this._selectedEl;
+
+        debugger
+
+        selected.style.left = 0;
+        selected.style.width = Math.max(0, this._pointers[0].x()) + 'px';
+      },
+
+      /** selected spans from center of lowest pointer to center of other pointer */
+      _updateRangeSelected: function() {
+        var selected = this._selectedEl;
+        var pointers = this._pointers.sort(function(a, b) {
+          return a.value() > b.value();
+        });
+
+        selected.style.left = pointers[0].x() + 'px';
+        selected.style.width = (pointers[1].x() - pointers[0].x()) + 'px';
       },
 
       /**

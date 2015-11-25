@@ -33,6 +33,13 @@ input {
   transform: translateX(-50%);
 }
 
+.range-replacement-selected {
+  height: 2px;
+  background: red;
+  opacity: 0.5;
+  transform: translateY(-50%);
+}
+
 .range-replacement .track {
   width: 100%;
   height: 2px;
