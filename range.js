@@ -174,7 +174,11 @@
       // TODO: this should be on track object
       /** Set left position (in percent) of pointer */
       left: function (percent) {
-        this._el.style.left = percent + '%';
+        if(arguments.length) {
+          this._left = this._el.style.left = percent + '%';
+        }
+
+        return this._left;
       },
 
       x: function(){
@@ -927,7 +931,7 @@
         debugger
 
         selected.style.left = 0;
-        selected.style.width = Math.max(0, this._pointers[0].x()) + 'px';
+        selected.style.width = this._pointers[0].left();
       },
 
       /** selected spans from center of lowest pointer to center of other pointer */
