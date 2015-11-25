@@ -17,8 +17,13 @@ After DOM ready call
 Range.init(ranges, args);
 ```
 
+<<<<<<< HEAD
 where ranges is optional. Ranges can be a selector string, a nodelist/array of
 dom nodes, or a dom node. Ranges defaults to `'input[type=range]'`
+=======
+where ranges is optional. ranges can be a selector string, a nodelist/array of
+dom nodes, or a dom node. ranges defaults to `'input[type=range]'`
+>>>>>>> 9e106adf7a4ce25b1e1bef1d334f1387ee31bba0
 
 and args is an arguments object.
 
@@ -56,8 +61,13 @@ input element, your events will fire as before.
 
 #### Later
 
+<<<<<<< HEAD
 * divide into modules
 * ie8 support
+=======
+* more tests
+* work out all required events
+>>>>>>> 9e106adf7a4ce25b1e1bef1d334f1387ee31bba0
 
 ### Known issues
 

@@ -31,7 +31,9 @@
     value=2 min=1 max=4 step=2
     <input id="range-5" class="range" max="4" min="0" step="2" type="range" value="2" />
 
-    <input id="range-6" max="4" min="2" step="1" type="range" value="2" />
+
+    <input id="range-6" max="4" min="1" step="1" type="range" value="2" />
+
 
     <script src="/vendor/eventPolyfill.js"></script>
     <script src="/range.js"></script>
@@ -40,7 +42,9 @@
       Range.init('.range');
 
       var ticks = document.getElementById('range-6');
-      Range.init(ticks, { ticks: true })
+
+      Range.init(ticks, { ticks: [2, 3] })
+
 
       var inputs = document.querySelectorAll('input');
 

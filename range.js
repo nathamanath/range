@@ -113,6 +113,7 @@
      *
      * @class Range
      * @param {object} el - range input to recieve facade
+<<<<<<< HEAD
      * @param {object} [args]
      * @param {string} [args.pointerWidth] - See `.init`
      * @param {boolean|array} [args.ticks] - set ticks via js instaead of list
@@ -121,6 +122,10 @@
      * @param {number} [args.max=100] - alternate max setter
      * @param {number} [args.min=0] - alternate min setter
      * @param {number} [args.step=1] - alternate step setter
+=======
+     * @param {object} args
+     * @param {string} args.pointerWidth - See `.init`
+>>>>>>> 9e106adf7a4ce25b1e1bef1d334f1387ee31bba0
      */
     var Range = function(el, args) {
       var self = this;
@@ -162,7 +167,8 @@
             // make array of possible values
             ticks = [];
 
-            for(var i = this.min, l = this.max; i <= l; i += this.step) {
+
+            for(var i = this.min, l = this.max; i < l; i += this.step) {
               ticks.push(i);
             }
 
@@ -178,16 +184,13 @@
        * @private
        */
       _list: function() {
-        var options;
+        var listId, list, options;
         var ticks = [];
 
-        var listId = this.input.getAttribute('list');
-        var list = document.getElementById(listId);
-
-        if(listId) {
+        if(listId = this.input.getAttribute('list')) {
           // get point values
 
-          if(list) {
+          if(list = document.getElementById(listId)) {
             options = list.querySelectorAll('option');
 
             for(var i = 0, l = options.length; i < l; i++) {
@@ -221,7 +224,7 @@
        * generate all html required for tick marks. If ticks array is not
        * provided, generate tick at each step.
        * @private
-       * @param {array} ticks - values to put ticks on
+       * @param {array} [ticks] - values to put ticks on
        */
       _generateTicks: function(ticks) {
         var el = document.createElement('div');
@@ -276,6 +279,7 @@
         var offset;
 
         for(var i = 0; i < values.length; i++) {
+
           var value = values[i];
           // scale value between min and max
           offset = this._scale(value, [this.min, this.max], [0, 100]);
@@ -403,13 +407,19 @@
         var el = self.el;
         var events;
 
+        el.addEventListener('focus', function(e) {
+          self._focus(e);
+        });
+
         el.addEventListener('mousedown', function(e) {
           var code = e.keyCode || e.which;
 
           // left mousedown only
+
           // `|| (!code && e.keyCode == 0)` for ie8
-          if(code === 1 || (!code && e.keyCode == 0)) {
-            events = ['mousedown', 'mousemove', 'mouseup'];
+          if(code === 1) {
+            var events = ['mousedown', 'mousemove', 'mouseup'];
+
             self._dragStart(e, events, self._getMouseX);
           }
 
@@ -458,6 +468,7 @@
 
           document.addEventListener('keydown', self.keydown);
           document.addEventListener('keyup', self.keyup);
+
           window.addEventListener('mousedown', self.blur);
         }
       },
@@ -475,11 +486,17 @@
 
         // left or down arrow
         if(code === 40 || code === 37) {
+
+          e.preventDefault();
+
           self._setValue(self.value - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
+
+          e.preventDefault();
+
           self._setValue(self.value + self.step);
         }
 
@@ -488,7 +505,9 @@
           self._blur();
         }
 
+
         Event.fire(this.input, 'keydown', 'KeyboardEvent', code);
+
       },
 
       /**
@@ -516,6 +535,7 @@
         }
       },
 
+
       /**
        * Handle blur event on range replacement
        * @private
@@ -529,6 +549,7 @@
         window.removeEventListener('mousedown', self.blur);
         document.removeEventListener('keydown', self.keydown);
         document.removeEventListener('keyup', self.keyup);
+
 
         Event.fire(self.input, 'blur');
       },
@@ -803,6 +824,7 @@
     return {
       /**
        * @memberof Range
+
        * @static
        * @param {string|array|object} [ranges=input[type=range]] - css selector,
        * nodelist/array, or dom node to be replaced.
@@ -814,6 +836,7 @@
        * @returns {object|array} Range instance(s)
        */
       'init': function(ranges, args, silent) {
+
         ranges = ranges || 'input[type=range]';
 
         var replacements = [];
@@ -823,7 +846,9 @@
           ranges = document.querySelectorAll(ranges);
         } else if(typeof ranges.length === 'undefined') {
           // dom node
+
           return Range.create(ranges, args, silent);
+
         }
 
         for(var i = 0, l = ranges.length; i < l; i++) {
