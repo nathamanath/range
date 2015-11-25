@@ -235,7 +235,7 @@
       self.input = el;
       self.args = args || {};
 
-      self._mode = (!!self.args.range) ? 'RANGE' : 'NUMBER';
+      self._mode = (!!self.args['range']) ? 'RANGE' : 'NUMBER';
 
       self.value = parseFloat(el.value);
       self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || DEFAULT_RANGE_MAX;
@@ -254,7 +254,7 @@
        * @param {boolean} [silent=false] - do not fire change / input events
        * on init. handy when asynchronously setting value
        */
-      'init': function(silent) {
+      init: function(silent) {
         this._pointers = [];
         this._render();
         this._bindEvents();
@@ -1031,16 +1031,6 @@
       }
     };
 
-    /**
-     * @param {object} el - input to be replaced
-     * @param {object} args
-     * @param silent - see #init
-     * @returns {object} Range instance
-     */
-    Range.create = function(el, args, silent) {
-      return new Range(el, args).init(silent);
-    };
-
     return {
       /**
        * @memberof Range
@@ -1067,14 +1057,12 @@
           ranges = document.querySelectorAll(ranges);
         } else if(typeof ranges.length === 'undefined') {
           // dom node
-
-          return Range.create(ranges, args, silent);
-
+          return new Range(ranges, args).init(silent);
         }
 
         for(var i = 0, l = ranges.length; i < l; i++) {
           replacements.push(
-            Range.create(ranges[i], args)
+            new Range(ranges[i], args).init(silent)
           );
         }
 
