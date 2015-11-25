@@ -924,8 +924,6 @@
       _updateNumberSelected: function() {
         var selected = this._selectedEl;
 
-        debugger
-
         selected.style.left = 0;
         selected.style.width = Math.max(0, this._pointers[0].x()) + 'px';
       },
