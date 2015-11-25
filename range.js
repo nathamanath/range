@@ -136,6 +136,8 @@
           style.width = pointerWidth + 'px';
         }
 
+        this._el = pointer;
+
         return pointer;
       },
 
@@ -163,9 +165,20 @@
       width: function(width) {
         if(arguments.length) {
           this._width = parseFloat(width);
+          this._el.style.width = this._width + 'px';
         }
 
-        return this._width;
+        return this._el.offsetWidth;
+      },
+
+      // TODO: this should be on track object
+      /** Set left position (in percent) of pointer */
+      left: function (percent) {
+        this._el.style.left = percent + '%';
+      },
+
+      x: function(){
+        return this._el.getBoundingClientRect().left;
       },
 
       /** append point html to track */
@@ -217,7 +230,7 @@
       self.input = el;
       self.args = args || {};
 
-      self.pointers = self.args.pointers || DEFAULT_POINTERS;
+      self._mode = (!!self.args.range) ? 'RANGE' : 'NUMBER';
 
       self.value = parseFloat(el.value);
       self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || DEFAULT_RANGE_MAX;
@@ -237,12 +250,25 @@
        * on init. handy when asynchronously setting value
        */
       'init': function(silent) {
+        this._pointers = [];
         this._render();
         this._bindEvents();
-        this._setValue(this.value, silent);
+
+        //this._setValue(this._pointers[0], this.value, silent);
+
+        this._setPointerValues()
+
         this._handleTicks();
 
         return this;
+      },
+
+      _setPointerValues: function() {
+        var values = this.input.value.split(',');
+
+        for(var i = 0, l = values.length; i < l; i++) {
+          this._setValue(this._pointers[i], values[i], true);
+        }
       },
 
       _handleTicks: function() {
@@ -306,7 +332,7 @@
         this._getDimensions();
         var pointerWidth = this._getPointerWidth();
 
-        this.pointer.width(pointerWidth);
+        this._pointers[0].width(pointerWidth);
         this.track.style.paddingRight = pointerWidth;
       },
 
@@ -409,7 +435,7 @@
        */
       _getPointerWidth: function() {
         this.pointerWidth = this.args['pointerWidth'] ||
-          this.pointer.offsetWidth;
+          this._pointers[0].offsetWidth;
 
         return [this.pointerWidth, 'px'].join('');
       },
@@ -421,15 +447,21 @@
        */
       _template: function() {
         var el = this._rangeEl();
+        var totalPointers = (this._mode === 'RANGE') ? 2 : 1;
 
         this.track = this._trackEl();
         // this.pointer = this._pointerEl();
 
-        this.pointer = new Point({
-          track: this.track,
-          width: this.pointerWidth,
-          value: 0
-        }).init().render();
+        for(var i = 0, l = totalPointers; i < l; i++) {
+          var point = new Point({
+              track: this.track,
+              width: this.pointerWidth,
+              value: 0
+            }).init().render();
+
+          this._pointers.push(point);
+        }
+
 
         el.appendChild(this.track);
 
@@ -565,12 +597,12 @@
 
         // left or down arrow
         if(code === 40 || code === 37) {
-          self._setValue(self.value - self.step);
+          self._setValue(self._pointers[0], self.value - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
-          self._setValue(self.value + self.step);
+          self._setValue(self._pointers[0], self.value + self.step);
         }
 
         // tab
@@ -633,7 +665,7 @@
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
-        this._setValue(this.value, silent);
+        this._setValue(this._pointers[0], this.value, silent);
 
         return this;
       },
@@ -709,11 +741,19 @@
         var moveEvent = events[1];
         var endEvent = events[2];
 
+        // Get closest pointer... this is the one werew moving
+        var x = getX.call(self, e);
+
+        // we move the point closest to dragstart
+        var point = this._pointers.sort(function(a, b) {
+          return Math.abs(x - a.x()) > Math.abs(x - b.x());
+        })[0];
+
         self.oldValue = self.value;
-        self._input(getX.call(self, e));
+        self._input(point, getX.call(self, e));
 
         window.addEventListener(moveEvent, onMove = function(e) {
-          self._input(getX.call(self, e));
+          self._input(point, getX.call(self, e));
         });
 
         self._preventSelection();
@@ -786,7 +826,7 @@
        * @private
        * @param x - input event x position
        */
-      _input: function(x) {
+      _input: function(point, x) {
         // OPTIMIZE: How not to call this each time?
         // or cache results.
         this._getDimensions();
@@ -797,7 +837,7 @@
 
         var scaled = this._scale(offsetX, from, to);
 
-        this._setValue(scaled);
+        this._setValue(point, scaled);
       },
 
       /**
@@ -807,22 +847,24 @@
        * @param {boolean} silent - no inPut or change event
        * @fires this.input#input
        */
-      _setValue: function(value, silent) {
+      _setValue: function(pointer, value, silent) {
         var self = this;
 
         value = self._roundAndLimit(value);
 
         // set pointer position only when value changes
         if(value !== self.oldInputValue) {
-          self.pointer.value(value);
+          pointer.value(value);
 
-          self.oldInputValue = self.input.value = self.newValue = value;
+          self.oldInputValue = self.newValue = value;
+
+          self.input.value = self.inputValue();
 
           var min = self.min;
           var percent = ((value - min) / (self.max - min) * 100) || 0;
 
           // TODO: how should left be set
-          self.pointer._el.style.left = [percent, '%'].join('');
+          pointer.left(percent);
 
           // Do not fire event on first call (initialisation) or if silent
           if(self.oldValue && !silent) {
@@ -839,13 +881,48 @@
        * @param {boolean} silent - no change event
        */
       _change: function(silent) {
-        var newValue = this.newValue;
+        var newValue = this.inputValue();
         var input = this.input;
 
         if(this.oldValue !== newValue) {
           input.value = this.oldValue = this.value = newValue;
-          if(!silent) Event.fire(input, 'change');
+
+          if(!silent) {
+            Event.fire(input, 'change');
+          }
         }
+      },
+
+      inputValue: function () {
+        var value;
+        var mode = this._mode;
+
+        if(mode === 'NUMBER') {
+          value = this._numberValue();
+        }
+
+        if(mode === 'RANGE') {
+          value = this._rangeValue();
+        }
+
+        return value;
+      },
+
+      /** @returns vallue of range in number mode (default) */
+      _numberValue: function () {
+        return this._pointers[0].value();
+      },
+
+
+      /** returns value of range in range mode */
+      _rangeValue: function () {
+        var values = this._pointers.map(function(pointer) {
+          return pointer.value();
+        });
+
+        return values.sort(function(a, b) {
+            return a > b;
+          });
       },
 
       /**
@@ -904,6 +981,7 @@
        * @param {number} args.pointerWidth - static value for pointer width.
        * Needed if range replacement is origionaly renered with `display: none`
        * @param silent - see #init
+       * @param {boolean} args.range - select range of numbers, or a number from a range
        *
        * @returns {object|array} Range instance(s)
        */
@@ -921,7 +999,9 @@
         }
 
         for(var i = 0, l = ranges.length; i < l; i++) {
-          replacements.push(Range.create(ranges[i], args));
+          replacements.push(
+            Range.create(ranges[i], args)
+          );
         }
 
         return replacements;
