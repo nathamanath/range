@@ -21,7 +21,7 @@ input {
   outline: none;
 }
 
-.range-replacement .point {
+.range-replacement-point {
   width: 20px;
   height: 20px;
   border-radius: 20px;
@@ -30,6 +30,7 @@ input {
   top: -9px;
   z-index: 20;
   box-shadow: inset 0px 0px 1px 1px #ffffff;
+  transform: translateX(-50%);
 }
 
 .range-replacement .track {

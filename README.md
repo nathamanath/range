@@ -55,14 +55,23 @@ input element, your events will fire as before.
 * set $CLOSURE_PATH environment variable to closure compiler jar path
 * `rake build`
 
+Currently adding multiple points.
+next... find closest point to dragstart
+this is the one which is moving.
+
 ### TODO
 
 * useful test suite
+* AMD source
+* allow multiple pointers per range
 
 #### Later
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 * divide into modules
+=======
+>>>>>>> feature/many_pointers
 * ie8 support
 =======
 * more tests
