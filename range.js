@@ -174,7 +174,11 @@
       // TODO: this should be on track object
       /** Set left position (in percent) of pointer */
       left: function (percent) {
-        this._el.style.left = percent + '%';
+        if(arguments.length) {
+          this._left = this._el.style.left = percent + '%';
+        }
+
+        return this._left;
       },
 
       x: function(){
@@ -231,7 +235,7 @@
       self.input = el;
       self.args = args || {};
 
-      self._mode = (!!self.args.range) ? 'RANGE' : 'NUMBER';
+      self._mode = (!!self.args['range']) ? 'RANGE' : 'NUMBER';
 
       self.value = parseFloat(el.value);
       self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || DEFAULT_RANGE_MAX;
@@ -250,7 +254,7 @@
        * @param {boolean} [silent=false] - do not fire change / input events
        * on init. handy when asynchronously setting value
        */
-      'init': function(silent) {
+      init: function(silent) {
         this._pointers = [];
         this._render();
         this._bindEvents();
@@ -925,7 +929,7 @@
         var selected = this._selectedEl;
 
         selected.style.left = 0;
-        selected.style.width = Math.max(0, this._pointers[0].x()) + 'px';
+        selected.style.width = this._pointers[0].left();
       },
 
       /** selected spans from center of lowest pointer to center of other pointer */
@@ -1025,16 +1029,6 @@
       }
     };
 
-    /**
-     * @param {object} el - input to be replaced
-     * @param {object} args
-     * @param silent - see #init
-     * @returns {object} Range instance
-     */
-    Range.create = function(el, args, silent) {
-      return new Range(el, args).init(silent);
-    };
-
     return {
       /**
        * @memberof Range
@@ -1061,14 +1055,12 @@
           ranges = document.querySelectorAll(ranges);
         } else if(typeof ranges.length === 'undefined') {
           // dom node
-
-          return Range.create(ranges, args, silent);
-
+          return new Range(ranges, args).init(silent);
         }
 
         for(var i = 0, l = ranges.length; i < l; i++) {
           replacements.push(
-            Range.create(ranges[i], args)
+            new Range(ranges[i], args).init(silent)
           );
         }
 
