@@ -2,11 +2,13 @@
  * range.js - Range input facade
  *
  * @author NathanG
- * @license Range.js 0.0.13 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.14 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
   'use strict';
+
+  var CSS_PREFIX = 'range-replacement-';
 
   /**
    * Manages custom events
@@ -97,6 +99,101 @@
     }
   };
 
+  /**
+   * Represents a point (selected value) for a range input
+   *
+   * @class Point
+   */
+  var Point = (function() {
+
+    var Klass = function(args) {
+      this._value = this._oldValue = args.value;
+      this._width = args.width;
+      this._track = args.track;
+    };
+
+    /** @lends Point */
+    Klass.prototype = {
+      constructor: 'Point',
+
+      init: function() {
+        this._el = this._template();
+
+        return this;
+      },
+
+      /** @returns pointer html element */
+      _template: function() {
+        var pointer = document.createElement('div');
+        var style = pointer.style;
+
+        pointer.className = CSS_PREFIX + 'point';
+        style.position = 'absolute';
+
+        var pointerWidth = this._width;
+
+        if(!!pointerWidth) {
+          style.width = pointerWidth + 'px';
+        }
+
+        this._el = pointer;
+
+        return pointer;
+      },
+
+      /**
+       * gets / sets value
+       *
+       * @param value - number to replace value
+       * @returns value of point
+       */
+      value: function(value) {
+        if(arguments.length) {
+          this._oldValue = this._value;
+          this._value = parseFloat(value);
+        }
+
+        return this._value;
+      },
+
+      /**
+       * gets / sets width
+       *
+       * @param width - number to replace width
+       * @returns width of point
+       */
+      width: function(width) {
+        if(arguments.length) {
+          this._width = parseFloat(width);
+          this._el.style.width = this._width + 'px';
+        }
+
+        return this._el.offsetWidth;
+      },
+
+      // TODO: this should be on track object
+      /** Set left position (in percent) of pointer */
+      left: function (percent) {
+        this._el.style.left = percent + '%';
+      },
+
+      x: function(){
+        return this._el.getBoundingClientRect().left;
+      },
+
+      /** append point html to track */
+      render: function() {
+        this._track.appendChild(this._el);
+
+        return this;
+      }
+    };
+
+    return Klass;
+
+  })();
+
+
   (function(Range) {
     // Expose range
     var define = window.define || null;
@@ -106,7 +203,12 @@
     } else {
       window.Range = Range;
     }
-  })((function(Event) {
+  })((function(Event, Point) {
+
+    var DEFAULT_POINTERS = 1;
+    var DEFAULT_RANGE_MAX = 100;
+    var DEFAULT_RANGE_MIN = 0;
+    var DEFAULT_RANGE_STEP = 1;
 
     /**
      * Represents a range input
@@ -121,6 +223,7 @@
      * @param {number} [args.max=100] - alternate max setter
      * @param {number} [args.min=0] - alternate min setter
      * @param {number} [args.step=1] - alternate step setter
+
      */
     var Range = function(el, args) {
       var self = this;
@@ -128,14 +231,18 @@
       self.input = el;
       self.args = args || {};
 
+      self._mode = (!!self.args.range) ? 'RANGE' : 'NUMBER';
+
       self.value = parseFloat(el.value);
-      self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || 100;
-      self.min = parseFloat(el.getAttribute('min')) || self.args['min'] || 0;
-      self.step = parseFloat(el.getAttribute('step')) || self.args['step'] || 1;
+      self.max = parseFloat(el.getAttribute('max')) || self.args['max'] || DEFAULT_RANGE_MAX;
+      self.min = parseFloat(el.getAttribute('min')) || self.args['min'] || DEFAULT_RANGE_MIN;
+      self.step = parseFloat(el.getAttribute('step')) || self.args['step'] || DEFAULT_RANGE_STEP;
     };
 
     /** @memberof Range */
     Range.prototype = {
+      constructor: 'Range',
+
       /**
        * Initialize range replacements
        * @example new Range(args).init();
@@ -144,12 +251,29 @@
        * on init. handy when asynchronously setting value
        */
       'init': function(silent) {
+        this._pointers = [];
         this._render();
         this._bindEvents();
-        this._setValue(this.value, silent);
+
+        //this._setValue(this._pointers[0], this.value, silent);
+
         this._handleTicks();
 
+        this._setPointerValues()
+
+        this._lastPointer = this._pointers[0];
+
         return this;
+      },
+
+      /** Set pointer values from input value */
+      _setPointerValues: function() {
+        var values = this.input.value.split(',');
+
+        for(var i = 0, l = values.length; i < l; i++) {
+          this._setValue(this._pointers[i], values[i], true);
+        }
+
       },
 
       _handleTicks: function() {
@@ -162,7 +286,8 @@
             // make array of possible values
             ticks = [];
 
-            for(var i = this.min, l = this.max; i <= l; i += this.step) {
+
+            for(var i = this.min, l = this.max; i < l; i += this.step) {
               ticks.push(i);
             }
 
@@ -178,16 +303,13 @@
        * @private
        */
       _list: function() {
-        var options;
+        var listId, list, options;
         var ticks = [];
 
-        var listId = this.input.getAttribute('list');
-        var list = document.getElementById(listId);
-
-        if(listId) {
+        if(listId = this.input.getAttribute('list')) {
           // get point values
 
-          if(list) {
+          if(list = document.getElementById(listId)) {
             options = list.querySelectorAll('option');
 
             for(var i = 0, l = options.length; i < l; i++) {
@@ -213,7 +335,10 @@
         this._getDimensions();
         var pointerWidth = this._getPointerWidth();
 
-        this.pointer.style.width = pointerWidth;
+        this._pointers.forEach(function(pointer) {
+          pointer.width(pointerWidth);
+        });
+
         this.track.style.paddingRight = pointerWidth;
       },
 
@@ -221,7 +346,7 @@
        * generate all html required for tick marks. If ticks array is not
        * provided, generate tick at each step.
        * @private
-       * @param {array} ticks - values to put ticks on
+       * @param {array} [ticks] - values to put ticks on
        */
       _generateTicks: function(ticks) {
         var el = document.createElement('div');
@@ -243,10 +368,9 @@
        * @param ticks - ticks element
        */
       _styleTicks: function(ticks) {
-        var hpw = this.pointerWidth / 2;
         var style = ticks.style;
 
-        style.padding = ['0', hpw, 'px'].join('');
+        style.padding = ['0', this.pointerWidth / 2, 'px'].join('');
         style.width = '100%';
         style.position = 'absolute';
       },
@@ -274,9 +398,11 @@
        */
       _generateTickEls: function(values, inner) {
         var offset;
+        var value;
 
         for(var i = 0; i < values.length; i++) {
-          var value = values[i];
+
+          value = values[i];
           // scale value between min and max
           offset = this._scale(value, [this.min, this.max], [0, 100]);
           inner.appendChild(this._generateTick(offset, value));
@@ -295,9 +421,18 @@
         tick.innerHTML = value;
 
         tick.style.position = 'absolute';
-        tick.style.left = [offset, '%'].join('');
+        tick.style.left = offset + '%';
 
         return tick;
+      },
+
+      _generateSelected: function() {
+        var selected = document.createElement('div');
+
+        selected.className = CSS_PREFIX + 'selected';
+        selected.style.position = 'absolute';
+
+        return selected;
       },
 
       /**
@@ -317,7 +452,7 @@
        */
       _getPointerWidth: function() {
         this.pointerWidth = this.args['pointerWidth'] ||
-          this.pointer.offsetWidth;
+          this._pointers[0].offsetWidth;
 
         return [this.pointerWidth, 'px'].join('');
       },
@@ -329,12 +464,25 @@
        */
       _template: function() {
         var el = this._rangeEl();
+        var totalPointers = (this._mode === 'RANGE') ? 2 : 1;
 
         this.track = this._trackEl();
-        this.pointer = this._pointerEl();
+        this._selectedEl = this._generateSelected();
+
+        this.track.appendChild(this._selectedEl);
+
+        for(var i = 0, l = totalPointers; i < l; i++) {
+          var point = new Point({
+              track: this.track,
+              width: this.pointerWidth,
+              value: 0
+            }).init().render();
+
+          this._pointers.push(point);
+        }
+
 
         el.appendChild(this.track);
-        this.track.appendChild(this.pointer);
 
         // TODO: _preventSelection?!?
         el.addEventListener('selectstart', function(e) {
@@ -379,19 +527,12 @@
        * @returns Generated pointer el
        */
       _pointerEl: function() {
-        var pointer = document.createElement('div');
-        var style = pointer.style;
 
-        pointer.className = 'point';
-        style.position = 'relative';
+        return new Pointer({
+          width: this.pointerWidth,
+          value: 50
+        }).init();
 
-        var pointerWidth = this.pointerWidth;
-
-        if(!!pointerWidth) {
-          style.width = pointerWidth + 'px';
-        }
-
-        return pointer;
       },
 
       /**
@@ -403,13 +544,19 @@
         var el = self.el;
         var events;
 
+        el.addEventListener('focus', function(e) {
+          self._focus(e);
+        });
+
         el.addEventListener('mousedown', function(e) {
           var code = e.keyCode || e.which;
 
           // left mousedown only
+
           // `|| (!code && e.keyCode == 0)` for ie8
-          if(code === 1 || (!code && e.keyCode == 0)) {
-            events = ['mousedown', 'mousemove', 'mouseup'];
+          if(code === 1) {
+            var events = ['mousedown', 'mousemove', 'mouseup'];
+
             self._dragStart(e, events, self._getMouseX);
           }
 
@@ -458,6 +605,7 @@
 
           document.addEventListener('keydown', self.keydown);
           document.addEventListener('keyup', self.keyup);
+
           window.addEventListener('mousedown', self.blur);
         }
       },
@@ -473,14 +621,17 @@
         var code = e.keyCode || e.charCode;
         var self = this;
 
+
+        var pointer = self._lastPointer;
+
         // left or down arrow
         if(code === 40 || code === 37) {
-          self._setValue(self.value - self.step);
+          self._setValue(pointer, pointer.value() - self.step);
         }
 
         // right or up arrow
         else if(code === 38 || code === 39) {
-          self._setValue(self.value + self.step);
+          self._setValue(pointer, pointer.value() + self.step);
         }
 
         // tab
@@ -489,6 +640,7 @@
         }
 
         Event.fire(this.input, 'keydown', 'KeyboardEvent', code);
+
       },
 
       /**
@@ -516,6 +668,7 @@
         }
       },
 
+
       /**
        * Handle blur event on range replacement
        * @private
@@ -530,6 +683,7 @@
         document.removeEventListener('keydown', self.keydown);
         document.removeEventListener('keyup', self.keyup);
 
+
         Event.fire(self.input, 'blur');
       },
 
@@ -543,7 +697,7 @@
         this.value = this._roundAndLimit(parseFloat(this.input.value));
 
         this._getDimensions();
-        this._setValue(this.value, silent);
+        this._setValue(this._pointers[0], this.value, silent);
 
         return this;
       },
@@ -612,17 +766,26 @@
        * @fires this.input#touchstart
        */
       _dragStart: function(e, events, getX) {
-        var self = this,
-            onMove, onUp,
-            moveEvent = events[1],
-            endEvent = events[2];
+        var self = this;
+
+        var onMove, onUp;
+
+        var moveEvent = events[1];
+        var endEvent = events[2];
+
+        // Get closest pointer... this is the one werew moving
+        var x = getX.call(self, e);
+
+        // we move the point closest to dragstart
+        var point = this._pointers.sort(function(a, b) {
+          return Math.abs(x - a.x()) > Math.abs(x - b.x());
+        })[0];
 
         self.oldValue = self.value;
-        self._input(getX.call(self, e));
-
+        self._input(point, getX.call(self, e));
 
         window.addEventListener(moveEvent, onMove = function(e) {
-          self._input(getX.call(self, e));
+          self._input(point, getX.call(self, e));
         });
 
         self._preventSelection();
@@ -695,7 +858,7 @@
        * @private
        * @param x - input event x position
        */
-      _input: function(x) {
+      _input: function(point, x) {
         // OPTIMIZE: How not to call this each time?
         // or cache results.
         this._getDimensions();
@@ -706,7 +869,7 @@
 
         var scaled = this._scale(offsetX, from, to);
 
-        this._setValue(scaled);
+        this._setValue(point, scaled);
       },
 
       /**
@@ -716,27 +879,66 @@
        * @param {boolean} silent - no inPut or change event
        * @fires this.input#input
        */
-      _setValue: function(value, silent) {
+      _setValue: function(pointer, value, silent) {
         var self = this;
+
+        self._lastPointer = pointer;
 
         value = self._roundAndLimit(value);
 
         // set pointer position only when value changes
         if(value !== self.oldInputValue) {
-          self.oldInputValue = self.input.value = self.newValue = value;
+          pointer.value(value);
+
+          self.oldInputValue = self.newValue = value;
+
+          self.input.value = self.inputValue();
 
           var min = self.min;
           var percent = ((value - min) / (self.max - min) * 100) || 0;
 
-          self.pointer.style.left = [percent, '%'].join('');
+          // TODO: how should left be set
+          pointer.left(percent);
 
           // Do not fire event on first call (initialisation) or if silent
           if(self.oldValue && !silent) {
             Event.fire(self.input, 'input');
           }
 
+          self._updateSelected();
+
           self._change(silent);
         }
+      },
+
+      /** position selected el */
+      _updateSelected: function() {
+        if(this._mode === 'RANGE') {
+          this._updateRangeSelected();
+        } else if(this._mode === 'NUMBER') {
+          this._updateNumberSelected();
+        }
+      },
+
+      /** selected spans from left of track to center of pointer */
+      _updateNumberSelected: function() {
+        var selected = this._selectedEl;
+
+        debugger
+
+        selected.style.left = 0;
+        selected.style.width = Math.max(0, this._pointers[0].x()) + 'px';
+      },
+
+      /** selected spans from center of lowest pointer to center of other pointer */
+      _updateRangeSelected: function() {
+        var selected = this._selectedEl;
+        var pointers = this._pointers.sort(function(a, b) {
+          return a.value() > b.value();
+        });
+
+        selected.style.left = pointers[0].x() + 'px';
+        selected.style.width = (pointers[1].x() - pointers[0].x()) + 'px';
       },
 
       /**
@@ -745,13 +947,48 @@
        * @param {boolean} silent - no change event
        */
       _change: function(silent) {
-        var newValue = this.newValue;
+        var newValue = this.inputValue();
         var input = this.input;
 
         if(this.oldValue !== newValue) {
           input.value = this.oldValue = this.value = newValue;
-          if(!silent) Event.fire(input, 'change');
+
+          if(!silent) {
+            Event.fire(input, 'change');
+          }
         }
+      },
+
+      inputValue: function () {
+        var value;
+        var mode = this._mode;
+
+        if(mode === 'NUMBER') {
+          value = this._numberValue();
+        }
+
+        if(mode === 'RANGE') {
+          value = this._rangeValue();
+        }
+
+        return value;
+      },
+
+      /** @returns vallue of range in number mode (default) */
+      _numberValue: function () {
+        return this._pointers[0].value();
+      },
+
+
+      /** returns value of range in range mode */
+      _rangeValue: function () {
+        var values = this._pointers.map(function(pointer) {
+          return pointer.value();
+        });
+
+        return values.sort(function(a, b) {
+            return a > b;
+          });
       },
 
       /**
@@ -803,6 +1040,7 @@
     return {
       /**
        * @memberof Range
+
        * @static
        * @param {string|array|object} [ranges=input[type=range]] - css selector,
        * nodelist/array, or dom node to be replaced.
@@ -810,10 +1048,12 @@
        * @param {number} args.pointerWidth - static value for pointer width.
        * Needed if range replacement is origionaly renered with `display: none`
        * @param silent - see #init
+       * @param {boolean} args.range - select range of numbers, or a number from a range
        *
        * @returns {object|array} Range instance(s)
        */
       'init': function(ranges, args, silent) {
+
         ranges = ranges || 'input[type=range]';
 
         var replacements = [];
@@ -823,17 +1063,20 @@
           ranges = document.querySelectorAll(ranges);
         } else if(typeof ranges.length === 'undefined') {
           // dom node
+
           return Range.create(ranges, args, silent);
+
         }
 
         for(var i = 0, l = ranges.length; i < l; i++) {
-          replacements.push(Range.create(ranges[i], args));
+          replacements.push(
+            Range.create(ranges[i], args)
+          );
         }
 
         return replacements;
       }
     };
 
-  })(Event));
+  })(Event, Point));
 })(window, document);
-

@@ -1,11 +1,7 @@
 require 'spec_helper'
-require 'selenium-webdriver'
-
-Capybara.default_driver = :selenium
-Capybara.ignore_hidden_elements = false
 
 def url
-  'http://localhost:8000'
+  '/'
 end
 
 feature 'RangeInput' do
