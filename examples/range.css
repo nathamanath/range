@@ -34,8 +34,10 @@ input {
 }
 
 .range-replacement-selected {
-  height: 10px;
+  height: 2px;
   background: red;
+  opacity: 0.5;
+  transform: translateY(-50%);
 }
 
 .range-replacement .track {
