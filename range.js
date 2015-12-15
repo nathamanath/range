@@ -2,7 +2,7 @@
  * range.js - Range input facade with a few extras
  *
  * @author NathanG
- * @license Range.js 0.0.15 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.16 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
@@ -261,7 +261,7 @@
 
         this._handleTicks();
 
-        this._setPointerValues()
+        this._setPointerValues();
 
         this._lastPointer = this._pointers[0];
 
@@ -456,7 +456,7 @@
         this.pointerWidth = this.args['pointerWidth'] ||
           this._pointers[0].offsetWidth;
 
-        return [this.pointerWidth, 'px'].join('');
+        return this.pointerWidth + 'px';
       },
 
       /**
@@ -891,7 +891,7 @@
         value = self._roundAndLimit(value);
 
         // set pointer position only when value changes
-        if(value !== self.oldInputValue) {
+        if(value !== pointer.value()) {
           pointer.value(value);
 
           self.oldInputValue = self.newValue = value;
@@ -991,8 +991,8 @@
         });
 
         return values.sort(function(a, b) {
-            return a > b;
-          });
+          return a > b;
+        });
       },
 
       /**
