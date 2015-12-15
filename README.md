@@ -18,9 +18,7 @@ Range.init(ranges, args);
 ```
 
 where ranges is optional. Ranges can be a selector string, a nodelist/array of
-dom nodes, or a dom node. Ranges defaults to `'input[type=range]'`
-
-and args is an arguments object.
+dom nodes, or a dom node. Ranges defaults to `'input[type=range]'` and args is an arguments object.
 
 ### As a polyfill
 
