@@ -17,13 +17,8 @@ After DOM ready call
 Range.init(ranges, args);
 ```
 
-<<<<<<< HEAD
 where ranges is optional. Ranges can be a selector string, a nodelist/array of
 dom nodes, or a dom node. Ranges defaults to `'input[type=range]'`
-=======
-where ranges is optional. ranges can be a selector string, a nodelist/array of
-dom nodes, or a dom node. ranges defaults to `'input[type=range]'`
->>>>>>> 9e106adf7a4ce25b1e1bef1d334f1387ee31bba0
 
 and args is an arguments object.
 
@@ -53,30 +48,21 @@ input element, your events will fire as before.
 ### Building
 * jsdoc is required to build docs.
 * set $CLOSURE_PATH environment variable to closure compiler jar path
-* `rake build`
-
-Currently adding multiple points.
-next... find closest point to dragstart
-this is the one which is moving.
+* `$CLOSURE_PATH=<path to closure compiler> rake build`
 
 ### TODO
-
+* when in range mode, set initial value for both pointers.
+* handle range input offset when setting dimensions of selected area
+* nice defaults for pointers
 * useful test suite
 * AMD source
 * allow multiple pointers per range
 
 #### Later
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 * divide into modules
-=======
->>>>>>> feature/many_pointers
-* ie8 support
-=======
 * more tests
 * work out all required events
->>>>>>> 9e106adf7a4ce25b1e1bef1d334f1387ee31bba0
 
 ### Known issues
 

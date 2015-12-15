@@ -1,8 +1,8 @@
 /**
- * range.js - Range input facade
+ * range.js - Range input facade with a few extras
  *
  * @author NathanG
- * @license Range.js 0.0.14 | https://github.com/nathamanath/range/LICENSE
+ * @license Range.js 0.0.15 | https://github.com/nathamanath/range/LICENSE
  */
 
 (function(window, document) {
@@ -259,8 +259,6 @@
         this._render();
         this._bindEvents();
 
-        //this._setValue(this._pointers[0], this.value, silent);
-
         this._handleTicks();
 
         this._setPointerValues()
@@ -475,12 +473,14 @@
 
         this.track.appendChild(this._selectedEl);
 
+        var point;
+
         for(var i = 0, l = totalPointers; i < l; i++) {
-          var point = new Point({
-              track: this.track,
-              width: this.pointerWidth,
-              value: 0
-            }).init().render();
+          point = new Point({
+            track: this.track,
+            width: this.pointerWidth,
+            value: 0
+          }).init().render();
 
           this._pointers.push(point);
         }
@@ -935,12 +935,14 @@
       /** selected spans from center of lowest pointer to center of other pointer */
       _updateRangeSelected: function() {
         var selected = this._selectedEl;
-        var pointers = this._pointers.sort(function(a, b) {
-          return a.value() > b.value();
+        var pointers = this._pointers;
+
+        var sorted = [0, 1].sort(function(a, b) {
+          return pointers[a].value() > pointers[b].value();
         });
 
-        selected.style.left = pointers[0].x() + 'px';
-        selected.style.width = (pointers[1].x() - pointers[0].x()) + 'px';
+        selected.style.left = pointers[sorted[0]].left();
+        selected.style.width = (parseInt(pointers[sorted[1]].left()) - parseInt(pointers[sorted[0]].left())) + '%';
       },
 
       /**
