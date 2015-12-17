@@ -156,6 +156,10 @@
         return this._value;
       },
 
+      oldValue: function() {
+        return this._oldValue;
+      },
+
       /**
        * gets / sets width
        *
@@ -178,7 +182,7 @@
           this._left = this._el.style.left = percent + '%';
         }
 
-        return this._left;
+        return this._left || '0';
       },
 
       x: function(){
@@ -227,7 +231,6 @@
      * @param {number} [args.max=100] - alternate max setter
      * @param {number} [args.min=0] - alternate min setter
      * @param {number} [args.step=1] - alternate step setter
-
      */
     var Range = function(el, args) {
       var self = this;
@@ -270,6 +273,9 @@
 
       /** Set pointer values from input value */
       _setPointerValues: function() {
+
+        // if input has no value set default for mode.
+
         var values = this.input.value.split(',');
 
         for(var i = 0, l = values.length; i < l; i++) {
@@ -287,7 +293,6 @@
           } else if(!!ticks) {
             // make array of possible values
             ticks = [];
-
 
             for(var i = this.min, l = this.max; i < l; i += this.step) {
               ticks.push(i);
@@ -479,7 +484,7 @@
           point = new Point({
             track: this.track,
             width: this.pointerWidth,
-            value: 0
+            value: null
           }).init().render();
 
           this._pointers.push(point);
@@ -653,11 +658,11 @@
        */
       _clickBlur: function(e) {
         var self = this,
-            input = self.input,
-            el = self.el,
-            // All els which wont cause blur if clicked
-            _els = el.querySelectorAll('*'),
-            els = [];
+          input = self.input,
+          el = self.el,
+          // All els which wont cause blur if clicked
+          _els = el.querySelectorAll('*'),
+          els = [];
 
         // nodelist to array
         for(var i = 0, l = _els.length; i < l; i++) {
@@ -777,7 +782,7 @@
         var moveEvent = events[1];
         var endEvent = events[2];
 
-        // Get closest pointer... this is the one werew moving
+        // Get closest pointer... this is the one we are moving
         var x = getX.call(self, e);
 
         // we move the point closest to dragstart
@@ -891,7 +896,7 @@
         value = self._roundAndLimit(value);
 
         // set pointer position only when value changes
-        if(value !== pointer.value()) {
+        if(value !== pointer.oldValue()) {
           pointer.value(value);
 
           self.oldInputValue = self.newValue = value;
