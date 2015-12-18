@@ -43,30 +43,16 @@ input element, your events will fire as before.
 
 ## Development
 
+Finish sorting into modules. Should be able to use mangle props flag with uglifier
+
 ### Building
-* jsdoc is required to build docs.
-* set $CLOSURE_PATH environment variable to closure compiler jar path
-* `$CLOSURE_PATH=<path to closure compiler> rake build`
+
+`npm run minify`
 
 ### TODO
-* when in range mode, set initial value for both pointers.
-* handle range input offset when setting dimensions of selected area
-* nice defaults for pointers
 * useful test suite
-* AMD source
-* allow multiple pointers per range
-
-#### Later
-
-* divide into modules
-* more tests
-* work out all required events
 
 ### Known issues
 
-* tabindex not woking in ie8
-* keyboard input does not work in ie8
-* Drag and drop not working in ie8.
 * When I focus on one range, and then I focus on another, focus and blur events
   are in wrong order.
-

@@ -1,0 +1,27 @@
+{
+  "name": "range",
+  "version": "0.0.17",
+  "description": "'cause they don't work in ie <= 9, and they are inconsistent in proper browsers.",
+  "main": "range.js",
+  "directories": {
+    "doc": "doc",
+    "example": "examples"
+  },
+  "scripts": {
+    "minify": "uglifyjs --compress -m -o build/range.min.js --reserved-file ./reserved-props.js --comments --screw-ie8 -- ./build/range.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nathamanath/range.git"
+  },
+  "author": "NathanG",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/nathamanath/range/issues"
+  },
+  "homepage": "https://github.com/nathamanath/range#readme",
+  "devDependencies": {
+    "amdclean": "^2.7.0",
+    "requirejs": "^2.1.22"
+  }
+}
