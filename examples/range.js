@@ -1,1 +1,1 @@
-../range.js
+../build/range.js
