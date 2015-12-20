@@ -9,7 +9,6 @@
   },
   "scripts": {
     "build": "r.js -o build.js && npm run minify",
-    "version": "mustache version.json build/range.js > build/range.js",
     "minify": "uglifyjs --compress -m -o build/range.min.js --mangle-props --reserve-domprops --reserved-file ./reserved-props.js --comments --screw-ie8 -- ./build/range.js"
   },
   "repository": {
@@ -24,8 +23,7 @@
   "homepage": "https://github.com/nathamanath/range#readme",
   "devDependencies": {
     "amdclean": "^2.7.0",
-    "google-closure-compiler": "^20151216.0.0",
-    "mustache": "^2.2.1",
-    "requirejs": "^2.1.22"
+    "requirejs": "^2.1.22",
+    "uglify-js": "^2.6.1"
   }
 }

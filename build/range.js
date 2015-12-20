@@ -1,4 +1,4 @@
-/** @license Range.js 0.0.17 | License: MIT */
+/** @license Range.js 0.0.17 | MIT License */
 var pointer, event, range, main;
 (function (root, factory) {
   if (typeof define === 'function' && define.amd) {
@@ -205,7 +205,7 @@ var pointer, event, range, main;
        * @param {boolean} [silent=false] - do not fire change / input events
        * on init. handy when asynchronously setting value
        */
-      init: function (silent) {
+      'init': function (silent) {
         this._pointers = [];
         this._render();
         this._bindEvents();
