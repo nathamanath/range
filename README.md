@@ -43,13 +43,14 @@ input element, your events will fire as before.
 
 ## Development
 
-Finish sorting into modules. Should be able to use mangle props flag with uglifier
+clone repo, run `npm install`
 
 ### Building
 
-`npm run minify`
+`npm run build`
 
 ### TODO
+
 * useful test suite
 
 ### Known issues

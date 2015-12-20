@@ -1,4 +1,4 @@
 {
-  "vars": ["Range"],
-  "props": ["init", "prototype"]
+  "vars": [],
+  "props": ["init", "update"]
 }
