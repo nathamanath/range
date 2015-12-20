@@ -45,7 +45,7 @@ define(['pointer', 'event'], function(Pointer, Event) {
      * @param {boolean} [silent=false] - do not fire change / input events
      * on init. handy when asynchronously setting value
      */
-    init: function(silent) {
+    'init': function(silent) {
       this._pointers = [];
       this._render();
       this._bindEvents();

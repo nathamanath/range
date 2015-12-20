@@ -8,7 +8,8 @@
     "example": "examples"
   },
   "scripts": {
-    "minify": "uglifyjs --compress -m -o build/range.min.js --reserved-file ./reserved-props.js --comments --screw-ie8 -- ./build/range.js"
+    "build": "r.js -o build.js && npm run minify",
+    "minify": "uglifyjs --compress -m -o build/range.min.js --mangle-props --reserve-domprops --reserved-file ./reserved-props.js --comments --screw-ie8 -- ./build/range.js"
   },
   "repository": {
     "type": "git",
@@ -22,6 +23,7 @@
   "homepage": "https://github.com/nathamanath/range#readme",
   "devDependencies": {
     "amdclean": "^2.7.0",
-    "requirejs": "^2.1.22"
+    "requirejs": "^2.1.22",
+    "uglify-js": "^2.6.1"
   }
 }
