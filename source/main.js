@@ -1,4 +1,7 @@
-define(['range'], function(Range) {
+define(['range'],
+  function(Range) {
+
+  'use strict';
 
   return {
     /**

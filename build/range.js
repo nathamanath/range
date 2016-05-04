@@ -10,6 +10,7 @@ var pointer, event, range, main;
   'use strict';
   pointer = function () {
     var CSS_PREFIX = 'range-replacement-';
+    var ACTIVE_CLASS = 'is-active';
     /**
      * Represents a point (selected value) for a range input
      *
@@ -27,6 +28,12 @@ var pointer, event, range, main;
         init: function () {
           this._el = this._template();
           return this;
+        },
+        activate: function () {
+          this._el.classList.add(ACTIVE_CLASS);
+        },
+        deactivate: function () {
+          this._el.classList.remove(ACTIVE_CLASS);
         },
         /** @returns pointer html element */
         _template: function () {
@@ -633,6 +640,7 @@ var pointer, event, range, main;
         var point = this._pointers.sort(function (a, b) {
           return Math.abs(x - a.x()) > Math.abs(x - b.x());
         })[0];
+        point.activate();
         self.oldValue = self.value;
         self._input(point, getX.call(self, e));
         window.addEventListener(moveEvent, onMove = function (e) {
@@ -660,6 +668,9 @@ var pointer, event, range, main;
        */
       _dragEnd: function (endEventName) {
         this._change();
+        this._pointers.forEach(function (pointer) {
+          pointer.deactivate();
+        });
         Event.fire(this.input, endEventName);
         Event.fire(this.input, 'click');
       },

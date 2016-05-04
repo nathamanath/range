@@ -1,4 +1,8 @@
-define([], function() {
+define([],
+  function() {
+
+  'use strict';
+
   /**
    * Manages custom events
    *

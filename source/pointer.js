@@ -1,6 +1,10 @@
-define([], function() {
+define([],
+  function() {
+
+  'use strict';
 
   var CSS_PREFIX = 'range-replacement-';
+  var ACTIVE_CLASS = 'is-active';
 
   /**
    * Represents a point (selected value) for a range input
@@ -25,7 +29,16 @@ define([], function() {
         return this;
       },
 
+      activate: function() {
+        this._el.classList.add(ACTIVE_CLASS);
+      },
+
+      deactivate: function() {
+        this._el.classList.remove(ACTIVE_CLASS);
+      },
+
       /** @returns pointer html element */
+      // TODO: Point value within point template
       _template: function() {
         var pointer = document.createElement('div');
         var style = pointer.style;

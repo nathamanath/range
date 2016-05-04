@@ -1,4 +1,7 @@
-define(['pointer', 'event'], function(Pointer, Event) {
+define(['pointer', 'event'],
+  function(Pointer, Event) {
+
+  'use strict';
 
   var DEFAULT_POINTERS = 1;
   var DEFAULT_RANGE_MAX = 100;
@@ -578,6 +581,8 @@ define(['pointer', 'event'], function(Pointer, Event) {
         return Math.abs(x - a.x()) > Math.abs(x - b.x());
       })[0];
 
+      point.activate();
+
       self.oldValue = self.value;
       self._input(point, getX.call(self, e));
 
@@ -612,6 +617,10 @@ define(['pointer', 'event'], function(Pointer, Event) {
      */
     _dragEnd: function(endEventName) {
       this._change();
+
+      this._pointers.forEach(function(pointer) {
+        pointer.deactivate();
+      });
 
       Event.fire(this.input, endEventName);
       Event.fire(this.input, 'click');

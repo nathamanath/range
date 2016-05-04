@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "r.js -o build.js && npm run minify",
-    "minify": "uglifyjs --compress -m -o build/range.min.js --mangle-props --reserve-domprops --reserved-file ./reserved-props.js --comments --screw-ie8 -- ./build/range.js"
+    "minify": "uglifyjs --compress -m -o build/range.min.js --comments --screw-ie8 -- ./build/range.js"
   },
   "repository": {
     "type": "git",
