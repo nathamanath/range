@@ -5,36 +5,21 @@
 The aim of this project is to create a range input facade will work, and display
 consistently in ie >= 9 (with eventListener polyfill), and modern browsers.
 
-Currently ie 8 is not fully supported. This will be fixed in a future release.
 
 ## Usage
 
-### As a replacement in all browsers
-
-After DOM ready call
-
-```javascript
-Range.init(ranges, args);
+```html
+  <input type="range">
 ```
 
-where ranges is optional. Ranges can be a selector string, a nodelist/array of
-dom nodes, or a dom node. Ranges defaults to `'input[type=range]'` and args is an arguments object.
+```javascript
+  Range.init('input[type=range]');
+```
 
-### As a polyfill
+See `examples/index.html` for more usage examples.
 
 * [polyfill
-  event listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener)
-* Use modernizr or similar to detect range input support.
-```javascript
-  Modernizr.load({
-    test: Modernizr.inputtypes.range,
-    nope: ['range.js', 'range-init.js']
-  })
-```
-
-* where `range-init.js` initializes range (see above)
-
-Ie < 9 does not support the input event. Bind to `element.oninput` for ie8 instead.
+  event listeners](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener?redirectlocale=en-US&redirectslug=DOM%2FEventTarget.addEventListener) for ie9
 
 ### Events stay the same
 
@@ -52,6 +37,7 @@ clone repo, run `npm install`
 ### TODO
 
 * useful test suite
+* docs
 
 ### Known issues
 
