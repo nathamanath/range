@@ -1,6 +1,6 @@
 # HTML5 range input replacement
 
-'cause they don't work in ie <= 9, and they are inconsistent in proper browsers.
+'cause they are inconsistent browsers.
 
 The aim of this project is to create a range input facade will work, and display
 consistently in ie >= 9 (with eventListener polyfill), and modern browsers.
