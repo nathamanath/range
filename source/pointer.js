@@ -52,6 +52,13 @@ define([],
           style.width = pointerWidth + 'px';
         }
 
+        var valueEl = document.createElement('div');
+        valueEl.className = CSS_PREFIX + 'pointer-value';
+        valueEl.innerHTML = this._value;
+
+        pointer.appendChild(valueEl);
+
+        this._valueEl = valueEl;
         this._el = pointer;
 
         return pointer;
@@ -67,6 +74,8 @@ define([],
         if(arguments.length) {
           this._oldValue = this._value;
           this._value = parseFloat(value);
+
+          this._valueEl.innerHTML = value || '0';
         }
 
         return this._value;
