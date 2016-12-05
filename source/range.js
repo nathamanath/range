@@ -584,8 +584,8 @@ define(['pointer', 'event'],
       // we move the point closest to dragstart
       var sorted = this._pointers.sort(function(a, b) {
 
-        var aGap = Math.abs(x - a.x())
-        var bGap = Math.abs(x - b.x())
+        var aGap = Math.abs(x - a.x());
+        var bGap = Math.abs(x - b.x());
 
         return (aGap > bGap) ? 1 : -1;
       });
@@ -751,7 +751,7 @@ define(['pointer', 'event'],
       var pointers = this._pointers;
 
       var sorted = [0, 1].sort(function(a, b) {
-        return pointers[a].value() > pointers[b].value();
+        return (pointers[a].value() > pointers[b].value()) ? 1 : -1;
       });
 
       selected.style.left = pointers[sorted[0]].left();
