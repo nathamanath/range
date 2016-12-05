@@ -3,6 +3,8 @@ define(['pointer', 'event'],
 
   'use strict';
 
+  /** @todo: Split this up into readable modules */
+
   var DEFAULT_POINTERS = 1;
   var DEFAULT_RANGE_MAX = 100;
   var DEFAULT_RANGE_MIN = 0;
@@ -573,13 +575,22 @@ define(['pointer', 'event'],
       var moveEvent = events[1];
       var endEvent = events[2];
 
+      // ios... none of that overscrolling
+      e.preventDefault();
+
       // Get closest pointer... this is the one we are moving
       var x = getX.call(self, e);
 
       // we move the point closest to dragstart
-      var point = this._pointers.sort(function(a, b) {
-        return Math.abs(x - a.x()) > Math.abs(x - b.x());
-      })[0];
+      var sorted = this._pointers.sort(function(a, b) {
+
+        var aGap = Math.abs(x - a.x());
+        var bGap = Math.abs(x - b.x());
+
+        return (aGap > bGap) ? 1 : -1;
+      });
+
+      var point = sorted[0];
 
       point.activate();
 
@@ -740,7 +751,7 @@ define(['pointer', 'event'],
       var pointers = this._pointers;
 
       var sorted = [0, 1].sort(function(a, b) {
-        return pointers[a].value() > pointers[b].value();
+        return (pointers[a].value() > pointers[b].value()) ? 1 : -1;
       });
 
       selected.style.left = pointers[sorted[0]].left();
