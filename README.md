@@ -29,6 +29,7 @@ input element, your events will fire as before.
 ## Development
 
 clone repo, run `npm install`
+`npm install -g requirejs` for building
 
 ### Building
 

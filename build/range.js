@@ -180,6 +180,7 @@ event = {
   }
 };
 range = function (Pointer, Event) {
+  /** @todo: Split this up into readable modules */
   var DEFAULT_POINTERS = 1;
   var DEFAULT_RANGE_MAX = 100;
   var DEFAULT_RANGE_MIN = 0;
@@ -641,6 +642,8 @@ range = function (Pointer, Event) {
       var onMove, onUp;
       var moveEvent = events[1];
       var endEvent = events[2];
+      // ios...
+      e.preventDefault();
       // Get closest pointer... this is the one we are moving
       var x = getX.call(self, e);
       // we move the point closest to dragstart

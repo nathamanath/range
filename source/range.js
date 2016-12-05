@@ -3,6 +3,8 @@ define(['pointer', 'event'],
 
   'use strict';
 
+  /** @todo: Split this up into readable modules */
+
   var DEFAULT_POINTERS = 1;
   var DEFAULT_RANGE_MAX = 100;
   var DEFAULT_RANGE_MIN = 0;
@@ -572,6 +574,9 @@ define(['pointer', 'event'],
 
       var moveEvent = events[1];
       var endEvent = events[2];
+
+      // ios... none of that overscrolling
+      e.preventDefault();
 
       // Get closest pointer... this is the one we are moving
       var x = getX.call(self, e);
