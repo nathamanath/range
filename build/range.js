@@ -642,14 +642,23 @@ range = function (Pointer, Event) {
       var onMove, onUp;
       var moveEvent = events[1];
       var endEvent = events[2];
-      // ios...
+      // ios... none of that overscrolling
       e.preventDefault();
       // Get closest pointer... this is the one we are moving
       var x = getX.call(self, e);
       // we move the point closest to dragstart
-      var point = this._pointers.sort(function (a, b) {
-        return Math.abs(x - a.x()) > Math.abs(x - b.x());
-      })[0];
+      var sorted = this._pointers.sort(function (a, b) {
+        var aGap = Math.abs(x - a.x());
+        var bGap = Math.abs(x - b.x());
+        console.log(aGap);
+        console.log(bGap);
+        console.log(aGap > bGap);
+        return aGap > bGap ? 1 : -1;
+      });
+      var point = sorted[0];
+      // console.log('-------')
+      // console.log(sorted == this._pointers)
+      debugger;
       point.activate();
       self.oldValue = self.value;
       self._input(point, getX.call(self, e));

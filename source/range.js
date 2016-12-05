@@ -582,9 +582,15 @@ define(['pointer', 'event'],
       var x = getX.call(self, e);
 
       // we move the point closest to dragstart
-      var point = this._pointers.sort(function(a, b) {
-        return Math.abs(x - a.x()) > Math.abs(x - b.x());
-      })[0];
+      var sorted = this._pointers.sort(function(a, b) {
+
+        var aGap = Math.abs(x - a.x())
+        var bGap = Math.abs(x - b.x())
+
+        return (aGap > bGap) ? 1 : -1;
+      });
+
+      var point = sorted[0];
 
       point.activate();
 
