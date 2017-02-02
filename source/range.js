@@ -423,8 +423,10 @@ define(['pointer', 'event'],
       var code = e.keyCode || e.charCode;
       var self = this;
 
-
       var pointer = self._lastPointer;
+
+      // clear old value as if i press left then right, this prevents move right
+      pointer._oldValue = null
 
       // left or down arrow
       if(code === 40 || code === 37) {
@@ -702,6 +704,12 @@ define(['pointer', 'event'],
       self._lastPointer = pointer;
 
       value = self._roundAndLimit(value);
+
+      console.log('----')
+      console.log('in setValue')
+      console.log(pointer.value())
+      console.log(pointer.oldValue()) // <-- this is number we want to go to
+      console.log(value)
 
       // set pointer position only when value changes
       if(value !== pointer.oldValue()) {

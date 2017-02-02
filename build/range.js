@@ -36,7 +36,6 @@ pointer = function () {
         this._el.classList.remove(ACTIVE_CLASS);
       },
       /** @returns pointer html element */
-      // TODO: Point value within point template
       _template: function () {
         var pointer = document.createElement('div');
         var style = pointer.style;
@@ -527,6 +526,9 @@ range = function (Pointer, Event) {
       var code = e.keyCode || e.charCode;
       var self = this;
       var pointer = self._lastPointer;
+      pointer._oldValue = null;
+      // FIXME: when i press arrow key, and then i press opposite arrow key, pointer
+      // does not move in opposite direction.
       // left or down arrow
       if (code === 40 || code === 37) {
         self._setValue(pointer, pointer.value() - self.step);
@@ -748,6 +750,12 @@ range = function (Pointer, Event) {
       var self = this;
       self._lastPointer = pointer;
       value = self._roundAndLimit(value);
+      console.log('----');
+      console.log('in setValue');
+      console.log(pointer.value());
+      console.log(pointer.oldValue());
+      // <-- this is number we want to go to
+      console.log(value);
       // set pointer position only when value changes
       if (value !== pointer.oldValue()) {
         pointer.value(value);
