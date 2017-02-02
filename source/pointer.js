@@ -38,7 +38,6 @@ define([],
       },
 
       /** @returns pointer html element */
-      // TODO: Point value within point template
       _template: function() {
         var pointer = document.createElement('div');
         var style = pointer.style;
